@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infront — Sales Inventory Grid: Cricket Rights</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #EDF0F4; color: #1A2B4A; min-height: 100vh; }
+
+:root {
+  --navy:   #1A2B4A;
+  --teal:   #009B8D;
+  --orange: #E8612A;
+  --blue:   #1D5EAB;
+  --green:  #2B9B4E;
+  --border: #D8DDE6;
+  --mid:    #F7F8FA;
+  --muted:  #7A8BA0;
+  --dim:    #B0BEC8;
+}
+
+/* Heat colours */
+.heat-0 { background: #EEF0F4; color: #9AA6B4; }
+.heat-1 { background: #D6EDE8; color: #2B7A6F; }
+.heat-2 { background: #9FD5CB; color: #1A5C55; }
+.heat-3 { background: #47B5A7; color: #fff; }
+.heat-4 { background: #009B8D; color: #fff; }
+.heat-5 { background: #006E64; color: #fff; }
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--navy);
+  color: #fff;
+  padding: 0 32px;
+  height: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid var(--teal);
+}
+.topbar-brand { display: flex; align-items: center; gap: 14px; }
+.topbar-logo { font-size: 22px; font-weight: 900; letter-spacing: 3px; color: #fff; }
+.topbar-logo span { color: var(--teal); }
+.topbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); }
+.topbar-product { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.75); letter-spacing: 0.5px; }
+.topbar-meta { display: flex; align-items: center; gap: 10px; }
+.topbar-demo-badge {
+  background: var(--orange);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+.topbar-r { font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; }
+
+/* ── DEMO BANNER ── */
+.demo-banner {
+  background: linear-gradient(90deg, #FFF3EE 0%, #FFF8F5 100%);
+  border-bottom: 1px solid #F5C9B3;
+  padding: 9px 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.demo-banner-icon { font-size: 14px; }
+.demo-banner-text { font-size: 12px; color: #7A4030; line-height: 1.5; }
+.demo-banner-text strong { color: var(--orange); }
+
+/* ── PAGE LAYOUT ── */
+.page { display: flex; height: calc(100vh - 110px); overflow: hidden; }
+.main  { flex: 1; overflow-y: auto; padding: 20px 28px 40px; }
+.drawer { width: 460px; min-width: 460px; background: #fff; border-left: 2px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; transition: width 0.25s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.06); }
+.drawer.closed { width: 0; min-width: 0; overflow: hidden; border: none; box-shadow: none; }
+
+/* ── GRID HEADER ── */
+.grid-header { margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+.grid-header-left {}
+.grid-title { font-size: 20px; font-weight: 800; color: var(--navy); }
+.grid-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.legend { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.legend-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-right: 2px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.legend-box { width: 14px; height: 14px; border-radius: 3px; }
+
+/* ── STAT CHIPS ── (removed) */
+
+/* ── SPORT NAV ── */
+.sport-nav { display: flex; gap: 8px; margin-bottom: 14px; }
+.sport-btn { background: #fff; border: 1.5px solid var(--border); border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+.sport-btn:hover { border-color: var(--teal); color: var(--teal); }
+.sport-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+/* ── SOLD / UNSOLD ── */
+.cell-sold-badge { position: absolute; top: 3px; right: 4px; font-size: 7px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; padding: 1px 4px; border-radius: 2px; }
+.cell-sold-badge.sold { background: rgba(255,255,255,0.9); color: #1A6640; }
+.cell-sold-badge.avail { background: rgba(255,255,255,0.25); color: rgba(255,255,255,0.7); }
+.cell.is-sold { opacity: 0.72; }
+.cell.is-sold .cell-score { text-decoration: line-through; text-decoration-color: rgba(255,255,255,0.5); }
+
+.legend-wrap { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.sold-legend { display: flex; gap: 12px; align-items: center; }
+.sold-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.sold-dot { width: 10px; height: 10px; border-radius: 2px; }
+.sold-dot.sold { background: #2B9B4E; }
+.sold-dot.unsold { background: var(--teal); }
+
+/* ── GRID TABLE ── */
+.grid-wrap { overflow-x: auto; background: #fff; border-radius: 8px; border: 1px solid var(--border); padding: 12px 10px 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+table { border-collapse: separate; border-spacing: 3px; width: 100%; }
+th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); padding: 5px 8px; text-align: center; white-space: nowrap; }
+th.row-label { text-align: left; color: var(--navy); font-size: 11px; min-width: 170px; padding-left: 4px; }
+th.row-label.axis-label { font-size: 10px; color: var(--muted); font-style: italic; font-weight: 600; }
+th.flag-th { font-size: 15px; padding: 3px 4px; }
+th.flag-th span { display: block; font-size: 9px; font-weight: 700; color: var(--muted); margin-top: 1px; }
+
+.package-row td.pkg-label { font-size: 11px; font-weight: 700; color: var(--navy); padding: 0 6px 0 4px; white-space: nowrap; background: var(--mid); border-radius: 4px; }
+.pkg-tag { display: inline-block; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 5px; border-radius: 2px; color: #fff; margin-left: 5px; vertical-align: middle; }
+.pkg-tv    { background: var(--blue); }
+.pkg-dig   { background: var(--teal); }
+.pkg-hi    { background: var(--orange); }
+.pkg-mkt   { background: var(--green); }
+
+.cell { width: 48px; height: 42px; border-radius: 5px; cursor: pointer; text-align: center; vertical-align: middle; transition: transform 0.12s, box-shadow 0.12s; position: relative; }
+.cell:hover { transform: scale(1.15); box-shadow: 0 4px 12px rgba(0,0,0,0.18); z-index: 10; }
+.cell.active { outline: 3px solid var(--orange); outline-offset: 2px; }
+.cell-score { font-size: 14px; font-weight: 800; }
+.cell-bar { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; }
+.cell-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+.cell-dot.on { background: rgba(255,255,255,0.9); }
+
+/* ── DRAWER CONTENT ── */
+.drawer-close { display: flex; justify-content: flex-end; padding: 10px 14px 0; }
+.drawer-close button { border: none; background: none; cursor: pointer; font-size: 16px; color: var(--muted); padding: 4px 6px; border-radius: 4px; }
+.drawer-close button:hover { color: var(--navy); background: var(--mid); }
+
+.drawer-hero {
+  padding: 14px 24px 18px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, #F7F9FC 0%, #F0F7F6 100%);
+}
+.drawer-hero-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.drawer-flag { font-size: 28px; line-height: 1; }
+.drawer-territory { font-size: 20px; font-weight: 800; color: var(--navy); }
+.drawer-package { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+.score-badge { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 16px; font-size: 13px; font-weight: 700; }
+
+.drawer-section { padding: 16px 24px; border-bottom: 1px solid var(--border); }
+.drawer-section:last-child { border-bottom: none; padding-bottom: 32px; }
+.section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--teal); margin-bottom: 10px; }
+
+.fact-list { list-style: none; }
+.fact-list li { font-size: 12.5px; color: #3D4F6B; line-height: 1.6; margin-bottom: 8px; padding-left: 16px; position: relative; }
+.fact-list li::before { content: "→"; position: absolute; left: 0; color: var(--teal); font-size: 11px; top: 2px; }
+
+.surprise-box { background: #FFF8F5; border-left: 3px solid var(--orange); border-radius: 4px; padding: 10px 14px; font-size: 12px; color: #3D4F6B; font-style: italic; margin-top: 10px; }
+
+.lead-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; margin-bottom: 10px; }
+.lead-card:hover { border-color: var(--teal); box-shadow: 0 2px 8px rgba(0,155,141,0.08); }
+.lead-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.lead-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+.lead-rank { font-size: 10px; font-weight: 700; color: var(--muted); background: var(--border); padding: 2px 7px; border-radius: 10px; }
+.lead-type { display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 7px; border-radius: 2px; color: #fff; margin-bottom: 6px; }
+.lt-broadcaster { background: var(--blue); }
+.lt-streamer     { background: var(--teal); }
+.lt-brand        { background: var(--orange); }
+.lead-reason { font-size: 11.5px; color: var(--muted); line-height: 1.55; }
+.lead-source { font-size: 10px; color: var(--dim); margin-top: 5px; font-style: italic; background: var(--mid); border-radius: 3px; padding: 3px 6px; }
+
+.no-leads { font-size: 12px; color: var(--muted); font-style: italic; padding: 8px 0; }
+
+/* ── EMPTY STATE ── */
+.drawer-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 40px 28px; text-align: center; }
+.drawer-empty-icon { font-size: 52px; margin-bottom: 16px; opacity: 0.35; }
+.drawer-empty-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.drawer-empty-sub { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+.drawer-empty-hint { margin-top: 20px; background: var(--mid); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; font-size: 11px; color: var(--muted); line-height: 1.6; text-align: left; width: 100%; }
+.drawer-empty-hint strong { color: var(--navy); }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin: 0 24px; }
+.tab { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 10px 16px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--navy); }
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">IN<span>FRONT</span></div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-product">Sales Inventory Grid</div>
+  </div>
+  <div class="topbar-meta">
+    <div class="topbar-demo-badge">Demo · Simulated Data</div>
+    <div class="topbar-r">Media Rights · March 2026</div>
+  </div>
+</div>
+
+<div class="demo-banner">
+  <div class="demo-banner-icon">⚠️</div>
+  <div class="demo-banner-text">
+    <strong>Simulated demo.</strong> This grid uses AI-researched market data to demonstrate the Infront Sales Inventory concept. Scores and leads are based on publicly available information — not Infront's actual CRM or contract data. A live version would be populated directly from Infront's rights inventory.
+  </div>
+</div>
+
+<div class="page">
+  <div class="main">
+
+    <!-- Sport Switcher -->
+    <div class="sport-nav">
+      <button class="sport-btn active" onclick="switchSport('cricket')">🏏 Cricket World Cup Rights</button>
+      <button class="sport-btn" onclick="switchSport('rugby')">🏉 Rugby World Cup Rights</button>
+    </div>
+
+    <!-- CRICKET GRID -->
+    <div id="sport-cricket" class="sport-panel">
+      <div class="grid-header">
+        <div class="grid-header-left">
+          <div class="grid-title">Cricket World Cup Rights — Territory Heatmap</div>
+          <div class="grid-sub">Infront holds global cricket media rights. Click any cell to explore hotspot intelligence and buyer leads.</div>
+        </div>
+        <div class="legend-wrap">
+          <div class="sold-legend">
+            <div class="sold-legend-item"><div class="sold-dot sold"></div>Sold</div>
+            <div class="sold-legend-item"><div class="sold-dot unsold"></div>Available</div>
+          </div>
+          <div class="legend">
+            <span class="legend-label">Score:</span>
+            <div class="legend-item"><div class="legend-box heat-1"></div>Low</div>
+            <div class="legend-item"><div class="legend-box heat-2"></div>Moderate</div>
+            <div class="legend-item"><div class="legend-box heat-3"></div>Good</div>
+            <div class="legend-item"><div class="legend-box heat-4"></div>Strong</div>
+            <div class="legend-item"><div class="legend-box heat-5"></div>Dominant</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-wrap">
+        <table id="cricket-grid-table">
+          <thead><tr>
+            <th class="row-label axis-label">Inventory ↓ &nbsp;/&nbsp; Territories →</th>
+          </tr></thead>
+        </table>
+      </div>
+    </div>
+
+    <!-- RUGBY GRID -->
+    <div id="sport-rugby" class="sport-panel" style="display:none;">
+      <div class="grid-header">
+        <div class="grid-header-left">
+          <div class="grid-title">Rugby World Cup Rights — Territory Heatmap</div>
+          <div class="grid-sub">Infront holds global rugby media rights. Click any cell to explore hotspot intelligence and buyer leads.</div>
+        </div>
+        <div class="legend-wrap">
+          <div class="sold-legend">
+            <div class="sold-legend-item"><div class="sold-dot sold"></div>Sold</div>
+            <div class="sold-legend-item"><div class="sold-dot unsold"></div>Available</div>
+          </div>
+          <div class="legend">
+            <span class="legend-label">Score:</span>
+            <div class="legend-item"><div class="legend-box heat-1"></div>Low</div>
+            <div class="legend-item"><div class="legend-box heat-2"></div>Moderate</div>
+            <div class="legend-item"><div class="legend-box heat-3"></div>Good</div>
+            <div class="legend-item"><div class="legend-box heat-4"></div>Strong</div>
+            <div class="legend-item"><div class="legend-box heat-5"></div>Dominant</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-wrap">
+        <table id="rugby-grid-table">
+          <thead><tr>
+            <th class="row-label axis-label">Inventory ↓ &nbsp;/&nbsp; Territories →</th>
+          </tr></thead>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="drawer closed" id="drawer">
+    <div class="drawer-close"><button onclick="closeDrawer()" title="Close">✕</button></div>
+    <div id="drawer-content">
+      <div class="drawer-empty">
+        <div class="drawer-empty-icon">🏏</div>
+        <div class="drawer-empty-title">Select a cell to explore</div>
+        <div class="drawer-empty-sub">Click any cell in the heatmap to see AI-researched hotspot intelligence and ranked buyer leads for that territory and rights package.</div>
+        <div class="drawer-empty-hint">
+          <strong>How to read the grid:</strong><br>
+          Each row is a rights package (Inventory).<br>
+          Each column is a territory.<br>
+          Darker teal = higher commercial interest score.<br>
+          Green badge = rights sold. White badge = available.<br><br>
+          <strong>Try clicking:</strong> India (🇮🇳) for the dominant market, UAE (🇦🇪) for the surprise sponsorship leader, or Germany (🇩🇪) for a non-obvious emerging hotspot.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA — HOTSPOT RESEARCH
+// ═══════════════════════════════════════════════════
+const TERRITORIES = [
+  {
+    id: "india", name: "India", flag: "🇮🇳",
+    tv_score: 5, digital_score: 5, highlights_score: 5, marketing_score: 5,
+    key_facts: [
+      "ICC Champions Trophy 2025 final peaked at 122 million concurrent TV viewers and 61 million concurrent digital viewers on JioHotstar — both all-time cricket records",
+      "The India–Pakistan CT2025 league match generated 206 million TV viewers and 26 billion minutes of watch-time",
+      "India accounts for approximately 80% of the ICC's total global revenue",
+      "IPL 2025 generated $1.21 billion in domestic media revenue; JioStar originally paid ~$3 billion for ICC India rights 2024–27",
+      "368 billion global viewing minutes logged for CT2025 — a 19% increase on 2017; India contributed the overwhelming majority"
+    ],
+    surprise_factor: "Not a surprise — India is the undisputed engine of global cricket commerce; no other territory comes close."
+  },
+  {
+    id: "australia", name: "Australia", flag: "🇦🇺",
+    tv_score: 5, digital_score: 4, highlights_score: 4, marketing_score: 4,
+    key_facts: [
+      "Cricket Australia secured AUD $1.512 billion (USD ~$1 billion) seven-year broadcast rights deal with Foxtel and Seven, running 2024–2031",
+      "Seven pays AUD $65 million annually; Foxtel contributes ~AUD $144 million annually — total ~AUD $216M/year",
+      "Ashes 2025–26 drove record audience gains on both Seven and Fox Cricket simultaneously",
+      "Australia viewership of ICC CT2025 rose 65% vs 2017 — one of the largest growth markets outside India",
+      "Big Bash League restructured to 43 matches to align with school holidays and maximise prime-time slots"
+    ],
+    surprise_factor: "Not a surprise — Australia is a top-tier cricket nation with a mature, well-monetised broadcast market and strong rights values."
+  },
+  {
+    id: "england", name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    tv_score: 4, digital_score: 4, highlights_score: 4, marketing_score: 4,
+    key_facts: [
+      "Sky Sports pays £220 million annually for exclusive live rights to all home England internationals and domestic cricket through 2028",
+      "Total viewing hours of cricket on Sky have increased by 73% since 2017",
+      "From 2025, international cricket is no longer broadcast live on free-to-air TV in England",
+      "The Hundred franchise deal valued at £220M/year with investor overseas broadcast rights",
+      "Ashes is the most commercially valuable bilateral cricket series globally"
+    ],
+    surprise_factor: "The loss of free-to-air cricket from 2025 slightly caps the mass-market ceiling for TV broadcast deals, but premium pay-TV value remains strong."
+  },
+  {
+    id: "south_africa", name: "South Africa", flag: "🇿🇦",
+    tv_score: 4, digital_score: 3, highlights_score: 3, marketing_score: 4,
+    key_facts: [
+      "SA20 Season 3 (2025) viewership grew 47% year-on-year on SuperSport, reaching 2.37 million unique viewers",
+      "SA20 2025 opening match hit 382,778 unique SuperSport viewers — a 129% increase from Season 2, surpassing IPL opening match ratings in the SA market",
+      "CSA and SABC confirmed free-to-air deal for 2025–27, expanding Proteas Women's matches to SABC",
+      "SA20 Season 4 (2026) delivered 'unprecedented' commercial value for sponsors including Betway, Absa, DP World, and Suzuki",
+      "SA20 has generated $4 billion in economic impact and 8,500 jobs in South Africa"
+    ],
+    surprise_factor: "The SA20 league's rapid commercial growth — and its ability to out-rate the IPL and BBL in the local market — makes South Africa a stronger marketing and TV rights proposition than many expect."
+  },
+  {
+    id: "west_indies", name: "West Indies", flag: "🌴",
+    tv_score: 3, digital_score: 3, highlights_score: 3, marketing_score: 3,
+    key_facts: [
+      "Cricket West Indies signed a landmark six-year media rights deal with ESPN Caribbean (2024–2030) — the largest domestic deal CWI has ever secured",
+      "ESPN holds exclusive rights to all West Indies home internationals and CG United Super50 Cup across the Caribbean",
+      "The 2024 T20 World Cup co-hosted by CWI and USA reignited Caribbean cricket interest",
+      "West Indies rose from 9th to 3rd in ICC Men's T20I rankings over 12 months prior to 2024 tournament",
+      "The real value is the diaspora audience in North America and the UK who follow West Indies cricket"
+    ],
+    surprise_factor: "Individual Caribbean nation broadcast markets are small; the real value is the diaspora audience in North America and the UK."
+  },
+  {
+    id: "pakistan", name: "Pakistan", flag: "🇵🇰",
+    tv_score: 4, digital_score: 3, highlights_score: 4, marketing_score: 3,
+    key_facts: [
+      "Pakistan co-hosted ICC Champions Trophy 2025; ICC confirmed PTV and Myco as broadcast and digital partners through 2027",
+      "PTV Sports secured exclusive ACC broadcast rights (2025–2027) for approximately $10 million",
+      "Pakistan viewership of CT2025 rose 24% vs 2017 despite playing on home soil",
+      "Babar Azam has 28 million social media followers; Pakistan national team holds 17.9 million combined followers",
+      "Pakistan's domestic ad revenue fell 22% year-on-year, but diaspora audiences in UK, UAE, and Canada are highly commercially valuable"
+    ],
+    surprise_factor: "Pakistan's domestic broadcast market is price-constrained, but 230+ million population, passionate fan culture, and diaspora reach across the UK/UAE/Canada make it strong at the right price."
+  },
+  {
+    id: "sri_lanka", name: "Sri Lanka", flag: "🇱🇰",
+    tv_score: 3, digital_score: 3, highlights_score: 3, marketing_score: 3,
+    key_facts: [
+      "Dialog Television secured exclusive ICC media rights for Sri Lanka through January 2028, covering 8 major ICC tournaments",
+      "Sri Lanka is co-hosting the ICC T20 World Cup 2026 with India",
+      "ICC and SLC fan engagement for T20 WC 2026 reached 8 million organic digital reach; 13 fan parks nationally",
+      "MTV Channel previously held ICC rights through end of 2025 via free-to-air TV with broad national reach",
+      "Sri Lanka has a population of ~22 million with cricket as the dominant national sport"
+    ],
+    surprise_factor: "Co-hosting T20 World Cup 2026 is a significant commercial catalyst — broadcast rights, sponsorship inventory, and highlights deals all carry elevated value during this cycle."
+  },
+  {
+    id: "new_zealand", name: "New Zealand", flag: "🇳🇿",
+    tv_score: 3, digital_score: 3, highlights_score: 3, marketing_score: 2,
+    key_facts: [
+      "Sky NZ reclaimed domestic cricket rights in a six-year deal from 2026/27 through 2032",
+      "Record viewership in 2024–25 home season: 6 TVNZ free-to-air matches reached 1.86 million viewers",
+      "Spark Sport subscribers watched 3.4 million hours of cricket in a single season; 40% on mobile",
+      "IND vs NZ CT2025 final was the most-watched CT match ever globally at 65.3 billion live viewing minutes",
+      "New Zealand's population is ~5 million, limiting the domestic commercial ceiling despite strong per-capita engagement"
+    ],
+    surprise_factor: "New Zealand's appearance in the CT2025 final gave the Black Caps rare global spotlight, but the domestic market is small — marketing and sponsorship returns are modest."
+  },
+  {
+    id: "uae", name: "UAE", flag: "🇦🇪",
+    tv_score: 3, digital_score: 4, highlights_score: 3, marketing_score: 5,
+    key_facts: [
+      "ILT20 is the second-most watched cricket league globally with over 220 million viewers for Season 2",
+      "ICC.tv UAE users surged 196% during T20 World Cup 2026 — one of the fastest-growing digital cricket audiences in the world",
+      "The UAE hosts a South Asian diaspora of ~3.3 million (Indians, Pakistanis, Bangladeshis, Sri Lankans) who are the core cricket audience",
+      "DP World, Dream11, and Etisalat are major sponsors — signalling the UAE as a premium cricket sponsorship hub",
+      "Asia Cup 2025 is scheduled in the UAE in September, further cementing its status as the premier neutral-venue cricket hub"
+    ],
+    surprise_factor: "The UAE scores higher on marketing than any territory except India — the concentration of high-net-worth South Asian diaspora, global brands, and franchise cricket infrastructure makes it the top sponsorship market outside the subcontinent."
+  },
+  {
+    id: "usa", name: "USA", flag: "🇺🇸",
+    tv_score: 2, digital_score: 4, highlights_score: 3, marketing_score: 3,
+    key_facts: [
+      "T20 World Cup 2024 co-hosted by USA generated 7 million US-based ICC platform visitors — a 370% increase vs the entire 2022 World Cup, with 52% being new fans",
+      "Nassau County, New York hosted India vs Pakistan before 34,028 fans; total US attendance across 8 matches reached ~190,000",
+      "CT2025 USA viewership rose 38% vs 2017, confirming sustained growth beyond the hosting event",
+      "Major League Cricket (MLC) secured ICC List A status in May 2024 and plans to expand from 6 to 10 teams",
+      "Cricket returns to the Olympics at LA 2028 after 128 years; 6+ million South Asian Americans form the core fan base"
+    ],
+    surprise_factor: "The USA is the most important emerging market in cricket: a $30 trillion economy with no linear TV tradition but massive digital upside, growing diaspora demand, MLC growth, and Olympic momentum — digital and highlights rights here are significantly undervalued."
+  },
+  {
+    id: "netherlands", name: "Netherlands", flag: "🇳🇱",
+    tv_score: 2, digital_score: 3, highlights_score: 2, marketing_score: 2,
+    key_facts: [
+      "Netherlands is an ICC Associate member with ~6,000 registered players; cricket heritage dates to the 1840s",
+      "Dutch men's team has qualified for almost every ICC World Cup over the last decade",
+      "Non-traditional markets including Netherlands now account for over 25% of ICC.tv views during T20 WC 2026",
+      "A Netherlands–India World Cup match drew ~160 million global viewers despite Netherlands being an associate nation",
+      "KNCB faces budget shortfalls and relies on ICC revenue sharing model"
+    ],
+    surprise_factor: "Netherlands scores higher on digital than TV — a younger, digitally-native cricket fan base growing through diaspora communities makes streaming rights the relevant play here, not linear broadcast."
+  },
+  {
+    id: "bangladesh", name: "Bangladesh", flag: "🇧🇩",
+    tv_score: 4, digital_score: 3, highlights_score: 4, marketing_score: 3,
+    key_facts: [
+      "Bangladesh generates approximately 176 million cricket viewers — equivalent to the combined viewership of 10 other cricketing nations",
+      "Gazi TV (GTV) holds domestic broadcast rights through 2026, distributed via satellite, cable, IPTV, and free YouTube",
+      "Bangladesh has a population of ~170 million; 64 million social media users; cricket is the de facto national sport",
+      "BCB sold worldwide media rights for $20.02 million in 2014 — widely regarded as undervalued given the market size",
+      "ICC confirmed BCB as a full member with active rights tenders for the 2026–28 cycle"
+    ],
+    surprise_factor: "Bangladesh is consistently underpriced in cricket rights discussions — with 170 million people and cricket as the national religion, TV broadcast rights here rival or exceed many more 'prestigious' markets in audience reach."
+  },
+  {
+    id: "canada", name: "Canada", flag: "🇨🇦",
+    tv_score: 2, digital_score: 3, highlights_score: 2, marketing_score: 3,
+    key_facts: [
+      "Canada has 3+ million dedicated cricket fans; 36% South Asian, 44% People of Colour — a strongly diaspora-driven market",
+      "South Asian population reached 2.57 million per 2021 Census, dominated by Indian-origin (62.4%), Pakistani (12.8%) communities",
+      "Canada made its ICC T20 World Cup debut in 2024; Cineplex screened matches in 19 cities via Willow TV partnership",
+      "Manitoba cricket grew from fewer than 20 teams to 72 teams in 8 years; Brampton is Canada's cricket capital",
+      "Cricket returns to Olympics at LA 2028 — border proximity and diaspora enthusiasm position Canada as a market to watch"
+    ],
+    surprise_factor: "Canada's 3+ million cricket fans, dense South Asian diaspora in major cities, and proximity to US cricket growth make digital and marketing rights here more valuable than the low TV score suggests."
+  },
+  {
+    id: "germany", name: "Germany", flag: "🇩🇪",
+    tv_score: 1, digital_score: 3, highlights_score: 2, marketing_score: 2,
+    key_facts: [
+      "Germany recorded 150% user growth on ICC.tv during T20 World Cup 2026 — one of the highest growth rates of any non-traditional territory globally",
+      "Non-traditional markets including Germany now collectively account for over 25% of ICC.tv views",
+      "Forbes (Sept 2025) identified Germany as 'a coveted major market for cricket'",
+      "Germany is Europe's largest economy (3rd globally); South Asian and Afghan diaspora have rapidly expanded participation",
+      "A potential German Olympic bid could give Germany automatic cricket hosting rights as the host nation"
+    ],
+    surprise_factor: "Germany is the biggest non-obvious hotspot in this grid — Forbes explicitly flagged it in Sept 2025 as a 'coveted major market'; its economic scale, diaspora-driven growth, and 150% ICC.tv surge make digital rights here surprisingly valuable."
+  },
+  {
+    id: "japan", name: "Japan", flag: "🇯🇵",
+    tv_score: 1, digital_score: 3, highlights_score: 2, marketing_score: 2,
+    key_facts: [
+      "Japan recorded 100%+ growth in both unique users and total views on ICC.tv during T20 World Cup 2026",
+      "ICC and Japan Cricket Association provided Japanese-language live commentary on T20 WC 2026 semi-finals and final — a historic first",
+      "Non-English ICC.tv feeds (including Japanese) accounted for nearly half of total global playtime during T20 WC 2026",
+      "Cricket retained for the 2026 Aichi-Nagoya Asian Games in Japan — providing first major mainstream Japanese television exposure",
+      "Japan Cricket Association 5-year strategy 2023–2027 targets professional pathways and regional cricket centres"
+    ],
+    surprise_factor: "Japan is genuinely emerging as a digital cricket market — Asian Games hosting, Japanese-language ICC broadcasts, and 100%+ ICC.tv growth are current data points, not projections; digital and highlights rights here are worth acquiring ahead of the curve."
+  },
+  {
+    id: "brazil", name: "Brazil", flag: "🇧🇷",
+    tv_score: 1, digital_score: 2, highlights_score: 1, marketing_score: 2,
+    key_facts: [
+      "Brazil has ~100,000 registered players and ~12,000 regular participants; ICC reports 24% year-on-year participation growth",
+      "The Brazilian Cricket Confederation ran events for 100,000 people in 2024 (up from 80,000 in 2023)",
+      "Brazil's women's team ranks 35th globally — the strongest in Latin America — with all-local players on central contracts",
+      "The Brazilian Cricket Confederation was admitted as a full member of Brazil's Olympic Committee in 2025",
+      "The Guardian (March 11, 2026) highlighted a town near São Paulo where 7,000 under-30s play cricket regularly — more than play football there"
+    ],
+    surprise_factor: "Brazil is the most surprising territory in the grid — a 215-million person football monoculture quietly building genuine cricket infrastructure, with women-led participation growth and Olympic committee recognition."
+  }
+];
+
+// ═══════════════════════════════════════════════════
+// DATA — LEADS RESEARCH
+// ═══════════════════════════════════════════════════
+const LEADS = {
+  india: {
+    broadcast_leads: [
+      { name: "JioStar (Star Sports + JioHotstar)", type: "broadcaster", rank: 1, reasoning: "JioStar holds ICC India rights (~$3B for 2024-27 cycle) and IPL digital rights. With Star Sports linear channels and JioHotstar's 350M+ subscribers, they cover virtually all cricket consumption in India. The first and most critical call for any India cricket package.", source_hint: "Holds ICC India rights 2024-27; IPL digital rights; raised T20 WC 2026 TV sponsorship rates 45%, digital 75%" },
+      { name: "Sony Pictures Networks India", type: "broadcaster", rank: 2, reasoning: "Sony holds an 8-year ACC cricket rights deal and is co-broadcasting India's England tour 2025-26. Sony also holds India broadcast rights for New Zealand cricket through 2031.", source_hint: "8-year ACC rights deal; co-broadcasting India Tour of England 2025-26; Sony Sports Network" },
+      { name: "Zee Entertainment / ZEE5", type: "streamer", rank: 3, reasoning: "ZEE5 holds global media rights for the UAE ILT20 league and has established cricket broadcasting infrastructure. A credible challenger especially for non-BCCI packages.", source_hint: "Holds ILT20 global media rights for $120M; ZEE5 OTT platform; history of ICC rights bids" },
+      { name: "Amazon Prime Video India", type: "streamer", rank: 4, reasoning: "Amazon holds New Zealand cricket streaming rights in India. With 100M+ Indian Prime subscribers, Amazon is a strategic long-term play for digital cricket rights.", source_hint: "Holds NZ cricket streaming rights India; approached by ICC 2025; 100M+ Indian Prime subscribers" },
+      { name: "FanCode (Dream Sports)", type: "streamer", rank: 5, reasoning: "FanCode is India's fastest-growing multi-sport streaming platform, owned by Dream Sports (parent of Dream11). Streams non-BCCI international cricket in India. Ideal for digital highlights or secondary rights.", source_hint: "Streams ICC pathway events in India; owned by Dream Sports; 100M+ users on Dream Sports ecosystem" }
+    ],
+    marketing_leads: [
+      { name: "Apollo Tyres", type: "brand", rank: 1, reasoning: "Apollo Tyres replaced Dream11 as BCCI's lead team sponsor in 2025 in a record INR 579 crore deal through March 2028. Their logo is on Indian national team jerseys for all formats.", source_hint: "BCCI lead sponsor since Sept 2025; INR 579 crore 3-year deal; replaced Dream11" },
+      { name: "Tata Group", type: "brand", rank: 2, reasoning: "Tata Group is the IPL title sponsor (Tata IPL) in a landmark deal reported at ~$306M for 5 years. With brands spanning Tata Motors, TCS, and Jaguar Land Rover, Tata has the portfolio to buy global cricket marketing rights.", source_hint: "IPL title sponsor 'Tata IPL' 2022-2027; multi-category presence across cricket sponsorship" },
+      { name: "Reliance Industries / Jio", type: "brand", rank: 3, reasoning: "Reliance through JioStar controls cricket broadcasting and its Jio telecom brand is a massive sponsor. With Reliance's retail empire and consumer goods brands, they are a natural multi-rights marketing buyer.", source_hint: "Jio associate IPL sponsor; JioStar controls cricket broadcast; Reliance owns Mumbai Indians franchise" },
+      { name: "Dream11 (Dream Sports)", type: "brand", rank: 4, reasoning: "Dream11 was the previous BCCI jersey sponsor and remains the most aggressive cricket sponsor in India with 220M+ users. ICC Official Partner and multi-tournament sponsor.", source_hint: "Previous BCCI jersey sponsor; ICC Official Partner; 220M users; fantasy cricket platform" },
+      { name: "HDFC Bank", type: "brand", rank: 5, reasoning: "Indian banking sector is among the biggest cricket advertisers. HDFC Bank is an active cricket sponsor and associate partner with 500M+ customers matching cricket-watching demographics.", source_hint: "HDFC Bank active cricket advertiser and sponsor; banking sector top cricket marketing spender in India" }
+    ]
+  },
+  australia: {
+    broadcast_leads: [
+      { name: "Foxtel / Fox Sports / Kayo Sports", type: "broadcaster", rank: 1, reasoning: "Foxtel and Kayo Sports hold the dominant cricket broadcast rights in Australia as part of a $1.512B deal with Cricket Australia through 2031. They serve as host broadcaster for all Tests in Australia.", source_hint: "CA broadcast deal worth $1.512B through 2030-31; exclusive Test host broadcaster; Kayo Sports streaming arm" },
+      { name: "Seven Network (7plus)", type: "broadcaster", rank: 2, reasoning: "Seven Network is the free-to-air co-rights holder for Australian cricket, broadcasting all Tests, all Women's Internationals, and BBL matches through 2031. Free-to-air reach of 14M+ Australians.", source_hint: "Part of CA $1.512B deal through 2030-31; free-to-air Tests and BBL; 14M+ viewer reach" },
+      { name: "Amazon Prime Video Australia", type: "streamer", rank: 3, reasoning: "Amazon was the exclusive broadcaster of the 2024 MLC season in Australia and New Zealand. Amazon has demonstrated active cricket streaming intent in the Australian market.", source_hint: "Exclusive MLC 2024 broadcaster in Australia/NZ; growing sports streaming strategy in APAC" },
+      { name: "Stan Sport (Nine Entertainment)", type: "streamer", rank: 4, reasoning: "Stan Sport has been aggressively acquiring sports rights including rugby, tennis, and motor racing. Cricket highlights and digital rights would complement their growing sports portfolio.", source_hint: "Stan Sport holds rugby union, Wimbledon rights; aggressive sports rights acquisition strategy 2022-2025" }
+    ],
+    marketing_leads: [
+      { name: "Westpac Bank", type: "brand", rank: 1, reasoning: "Westpac became Cricket Australia's new principal partner from July 2025, replacing CommBank with front-of-shirt sponsorship rights for the Australian men's and women's national teams.", source_hint: "Cricket Australia principal partner from July 2025; front-of-shirt sponsor men's and women's teams" },
+      { name: "Toyota Australia", type: "brand", rank: 2, reasoning: "Toyota Australia extended its Cricket Australia partnership through 2029 in a four-year renewal announced July 2025. Toyota's 'Good for Cricket' program has raised $8.3M for local clubs.", source_hint: "CA partnership extended through 2029; 'Good for Cricket' program; covers all state associations" },
+      { name: "KFC Australia", type: "brand", rank: 3, reasoning: "KFC is the naming rights sponsor of the KFC Big Bash League, one of the most visible cricket sponsorships in Australian sport.", source_hint: "KFC Big Bash League naming rights sponsor; KFC SuperCoach; high-profile Summer of Cricket advertiser" },
+      { name: "McDonald's Australia", type: "brand", rank: 4, reasoning: "McDonald's is a major advertiser in Cricket Australia's Summer of Cricket campaigns, targeting families and young audiences during summer.", source_hint: "Confirmed Summer of Cricket 2025-26 sponsor; long history of cricket marketing in Australia" }
+    ]
+  },
+  england: {
+    broadcast_leads: [
+      { name: "Sky Sports (Sky UK / Comcast)", type: "broadcaster", rank: 1, reasoning: "Sky Sports holds the dominant home England cricket broadcast deal through 2028, covering all England men's and women's home fixtures. Sky also agreed a new ICC deal through 2031.", source_hint: "ECB home rights through 2028; ICC UK/Ireland rights through 2031; major England cricket broadcaster since 1990s" },
+      { name: "TNT Sports / Warner Bros. Discovery", type: "broadcaster", rank: 2, reasoning: "TNT Sports has secured consecutive Ashes rights and holds England's winter tour rights. TNT has positioned itself as the home of England's away cricket with significant investment.", source_hint: "Secured 2025-26 Ashes rights; third consecutive Ashes; England winter tour rights 2023-26" },
+      { name: "Channel 4 / All4", type: "broadcaster", rank: 3, reasoning: "Channel 4 is increasingly active in sports broadcasting and has shown appetite for cricket (sub-licensed limited ILT20 highlights). A publicly-funded broadcaster with strong motivation to carry high-profile cricket.", source_hint: "Sub-licensed ILT20 broadcast in UK from beIN; active FTA sports rights buyer; growing sports portfolio" },
+      { name: "Amazon Prime Video UK", type: "streamer", rank: 4, reasoning: "Amazon Prime Video is active in UK sports rights (holds Premier League, Champions League). With 20M+ UK Prime subscribers, cricket would be a high-value acquisition.", source_hint: "Active UK sports rights buyer (PL, CL); 20M+ UK Prime subscribers; demonstrated cricket streaming interest" }
+    ],
+    marketing_leads: [
+      { name: "Vitality (Insurance)", type: "brand", rank: 1, reasoning: "Vitality holds title sponsorship of Men's and Women's T20 Internationals, the T20 Blast, and the County Championship. First brand on the back of England's playing kits in November 2025.", source_hint: "ECB partner since 2013; title sponsor T20 Blast + County Championship; first back-of-kit sponsor in 2025" },
+      { name: "Toyota UK", type: "brand", rank: 2, reasoning: "Toyota replaced Cinch as the ECB's principal partner in 2025, gaining kit branding across all England men's, women's, and mixed disability teams. Also CA and ECB principal sponsor globally.", source_hint: "ECB principal sponsor from 2025; front-of-shirt England national teams; also Cricket Australia partner" },
+      { name: "Specsavers", type: "brand", rank: 3, reasoning: "Specsavers is an iconic cricket partner in the UK. The 'Specsavers umpire' campaign has enormous cultural value. A consistent ECB partner across television and digital.", source_hint: "Specsavers long-term ECB partner; 'Could've gone to Specsavers' umpire campaign; high-reach UK cricket audience" },
+      { name: "Bet365 / Sky Bet", type: "brand", rank: 4, reasoning: "UK betting operators are among the biggest cricket advertising spenders. Bet365 and Sky Bet are active in-match betting partners who would compete aggressively for first-mover territory brand association.", source_hint: "Active Sky Sports cricket betting partners; heavy cricket in-broadcast advertising; among top UK cricket advertiser categories" }
+    ]
+  },
+  south_africa: {
+    broadcast_leads: [
+      { name: "SuperSport / MultiChoice (DStv)", type: "broadcaster", rank: 1, reasoning: "SuperSport on DStv holds the primary South African cricket broadcast rights and serves as host broadcaster. Any global cricket rights package for South Africa goes through SuperSport first.", source_hint: "Primary CSA broadcast partner; SA20 broadcast; DStv Premium/Compact packages; host broadcaster for SA Tests" },
+      { name: "SABC (South African Broadcasting Corporation)", type: "broadcaster", rank: 2, reasoning: "SABC holds free-to-air cricket rights for South Africa following a deal with Cricket South Africa. With 10M+ FTA viewers, SABC provides mass-market reach SuperSport cannot.", source_hint: "CSA FTA broadcast deal 2024-25; SABC 3 white-ball; SABC+ red-ball and women's cricket" },
+      { name: "Canal+ (via MultiChoice acquisition)", type: "broadcaster", rank: 3, reasoning: "Canal+ Group completed its acquisition of MultiChoice in 2025, bringing extensive pan-African sports ambitions. Canal+ may re-package cricket rights across all of Africa.", source_hint: "Canal+ acquired MultiChoice 2025; pan-African sports strategy; would inherit SuperSport cricket portfolio" }
+    ],
+    marketing_leads: [
+      { name: "Betway (Kindred Group)", type: "brand", rank: 1, reasoning: "Betway is the SA20 title sponsor in a landmark multi-year deal. As a global betting brand with Africa ambitions, Betway would be among the first callers for any SA cricket marketing rights package.", source_hint: "SA20 title sponsor 2023-present; multi-year commitment" },
+      { name: "Absa Bank", type: "brand", rank: 2, reasoning: "Absa became the SA20's Official Banking Partner with a multi-year deal extended through Season 5+ in September 2025. One of South Africa's Big Four banks.", source_hint: "SA20 Official Banking Partner; 3-year extension announced Sept 2025; R100,000 per-match fan prize activation" },
+      { name: "Standard Bank", type: "brand", rank: 3, reasoning: "Standard Bank (Africa's largest bank by assets) has historically been a major Cricket South Africa sponsor. A Pan-African presence and recurring, high-value cricket marketing buyer.", source_hint: "Historical CSA title sponsor 'Standard Bank Series'; Pan-African banking reach" },
+      { name: "Castle Lite / SAB (ABInBev)", type: "brand", rank: 4, reasoning: "Castle Lite is the Official Beer Partner of SA20 and South African cricket broadly. SAB/ABInBev is one of the most consistent and high-spend cricket sponsors in South Africa.", source_hint: "Castle Lite Official Beer Partner SA20; SAB/ABInBev history with Cricket South Africa; summer beer category" }
+    ]
+  },
+  west_indies: {
+    broadcast_leads: [
+      { name: "ESPN Caribbean (The Walt Disney Company)", type: "broadcaster", rank: 1, reasoning: "ESPN Caribbean signed the largest-ever CWI broadcast deal — a six-year exclusive agreement through 2030. This is the anchor broadcaster for the Caribbean territory for the entire rights cycle.", source_hint: "Six-year exclusive CWI deal 2024-2030; ESPN, ESPN 2, Disney+ coverage; largest CWI broadcast deal ever" },
+      { name: "ESPN+ (USA digital rights for Caribbean cricket)", type: "streamer", rank: 2, reasoning: "ESPN holds a separate five-year deal for exclusive US digital rights to West Indies cricket via ESPN+. With the Caribbean diaspora in the USA, this digital extension is highly valuable.", source_hint: "Separate 2021 five-year US exclusive streaming deal via ESPN+; Caribbean diaspora US audience" },
+      { name: "SportsMax (Caribbean media)", type: "broadcaster", rank: 3, reasoning: "SportsMax is the leading Caribbean-owned sports TV channel, distributed via cable across the Caribbean. A committed partner for regional cricket including domestic tournaments.", source_hint: "Leading Caribbean-owned sports channel; cricket broadcast history; distributed via Flow, DigicelPlay cable" }
+    ],
+    marketing_leads: [
+      { name: "CG United Group", type: "brand", rank: 1, reasoning: "CG United is the title sponsor of the CG United Super50 Cup and a major Caribbean cricket sponsor. The regional conglomerate uses cricket as the primary marketing vehicle.", source_hint: "CG United Super50 Cup title sponsor; sleeve sponsor West Indies teams; major Caribbean brand" },
+      { name: "Digicel (Telecommunications)", type: "brand", rank: 2, reasoning: "Digicel was one of the most iconic CWI sponsors as the main front-of-shirt sponsor. With 13M+ Caribbean mobile subscribers, Digicel remains the most natural major title sponsorship buyer.", source_hint: "Former CWI front-of-shirt sponsor; 13M+ Caribbean subscribers; most historically associated cricket brand" },
+      { name: "Mastercard", type: "brand", rank: 3, reasoning: "Mastercard has been an official CWI partner since 2021 with a 2023 extension. A committed multi-year cricket marketing buyer with global activation capability.", source_hint: "Official CWI partner since 2021; extension signed June 2023; Caribbean + diaspora financial services activation" }
+    ]
+  },
+  pakistan: {
+    broadcast_leads: [
+      { name: "ARY Communications (A Sports / Ten Sports)", type: "broadcaster", rank: 1, reasoning: "ARY won PCB's broadcast rights for all Pakistan home international cricket from August 2024 to December 2026 at double the previous cycle price. The primary cricket broadcaster in Pakistan.", source_hint: "PCB home series rights Aug 2024-Dec 2026; doubled rights price; PSL 9 & 10 rights; A Sports and Ten Sports channels" },
+      { name: "PTV Sports", type: "broadcaster", rank: 2, reasoning: "PTV Sports secured exclusive domestic TV rights for all ACC events from 2025-2027. As the state broadcaster, PTV Sports has mass reach across Pakistan via free-to-air.", source_hint: "Exclusive ACC events Pakistan rights 2025-2027; state broadcaster FTA reach; PSL sub-license from ARY" },
+      { name: "Geo Sports (Jang Media Group)", type: "broadcaster", rank: 3, reasoning: "Geo Sports is Pakistan's most-watched news sports channel, part of the Jang Group media empire — Pakistan's largest media house. A motivated bidder for any cricket rights cycle.", source_hint: "Historical PCB broadcast partner; Pakistan's most-watched sports news channel; Jang Group media empire" },
+      { name: "Walee Technologies / Tapmad", type: "streamer", rank: 4, reasoning: "Walee Technologies won PSL live-streaming rights with a 113% price increase. Operating Tapmad, Tamasha, and Daraz, Walee is Pakistan's leading digital sports streaming aggregator.", source_hint: "PSL live-streaming rights with 113% premium; operates Tapmad, Tamasha, Daraz cricket streaming" }
+    ],
+    marketing_leads: [
+      { name: "HBL (Habib Bank Limited)", type: "brand", rank: 1, reasoning: "HBL has been the PSL title sponsor since 2016, maintaining this position through 2027 with a renewal reflecting a 505% increase in rights value. Pakistan's largest bank.", source_hint: "HBL PSL title sponsor 2016-2027; 505% rights value increase since 2016; Pakistan's largest bank" },
+      { name: "Pakistan State Oil (PSO)", type: "brand", rank: 2, reasoning: "PSO is Pakistan's largest oil marketing company and a major national sports sponsor with the budget and motivation to sponsor major cricket series.", source_hint: "Pakistan's largest oil company; major national sports sponsor; government-backed consumer brand" },
+      { name: "PepsiCo Pakistan", type: "brand", rank: 3, reasoning: "Pepsi has been one of Pakistan cricket's most iconic marketing partners with long-running jersey and series sponsorships. The beverage category is the most consistent cricket advertiser in Pakistan.", source_hint: "Pepsi historical Pakistan cricket jersey sponsor; beverage category dominant Pakistan cricket advertiser" },
+      { name: "Jazz (Veon/Mobilink Telecommunications)", type: "brand", rank: 4, reasoning: "Jazz is Pakistan's largest telecom operator with 75M+ subscribers and has been a major PCB sponsor. Telecoms use cricket to drive SIM activations and data packages.", source_hint: "PCB sponsor; 75M+ subscribers; cricket used to drive data consumption and SIM activations" }
+    ]
+  },
+  sri_lanka: {
+    broadcast_leads: [
+      { name: "Dialog TV (Axiata Group)", type: "broadcaster", rank: 1, reasoning: "Dialog TV secured exclusive ICC media rights for Sri Lanka through January 2028. Dialog is Sri Lanka's largest telecom operator and is investing heavily in cricket.", source_hint: "ICC Sri Lanka rights 2026-Jan 2028; covers 8 ICC events inc. 2026 T20 WC; Sri Lanka's largest telco" },
+      { name: "Maharaja TV / Sirasa TV group", type: "broadcaster", rank: 2, reasoning: "Maharaja TV held ICC rights in Sri Lanka through end-2025, broadcasting across TV1, Shakthi TV, and Sirasa TV. As the incumbent transitioning out, they remain motivated for bilateral rights.", source_hint: "ICC Sri Lanka rights through end-2025; FTA channels TV1, Shakthi TV, Sirasa TV; historical cricket broadcaster" }
+    ],
+    marketing_leads: [
+      { name: "Singer Sri Lanka", type: "brand", rank: 1, reasoning: "Singer Sri Lanka has been a SLC team sponsor since 1996 and is the most committed long-term cricket marketing buyer in Sri Lanka — a 28+ year partnership.", source_hint: "SLC team sponsor since 1996; jersey sponsor; 'Honor by Singer' lead arm sponsor; 28+ year partnership" },
+      { name: "Dialog Axiata (Telecommunications)", type: "brand", rank: 2, reasoning: "Dialog as both ICC broadcast rights holder and Sri Lanka's largest telco is a natural marketing rights buyer — combining broadcast and sponsorship for complete cricket ownership.", source_hint: "Dialog previous SLC jersey sponsor; ICC rights holder 2026-28; category bundling broadcast + marketing" },
+      { name: "Nippon Paints Sri Lanka", type: "brand", rank: 3, reasoning: "Nippon Paints is the Lead Arm Sponsor of Sri Lanka Cricket's national teams, appearing on both men's and women's cricket jerseys.", source_hint: "Lead Arm Sponsor Sri Lanka national cricket teams; men's and women's jersey presence" }
+    ]
+  },
+  new_zealand: {
+    broadcast_leads: [
+      { name: "Sky NZ (Sky Television New Zealand)", type: "broadcaster", rank: 1, reasoning: "Sky NZ won back NZC rights in a six-year deal beginning with the 2026/27 season through 2032, covering all home internationals for men's and women's teams.", source_hint: "Six-year NZC deal 2026-2032; all home internationals men's and women's; reclaimed from TVNZ/Spark era" },
+      { name: "TVNZ / 1News", type: "broadcaster", rank: 2, reasoning: "TVNZ currently holds NZC broadcast rights through 2025-26 and is being explored as a free-to-air sub-licensee for T20Is under the new Sky deal. Provides mass FTA reach.", source_hint: "Current NZC rights holder through 2025-26; FTA sub-license discussions for T20Is and Super Smash with Sky" },
+      { name: "Amazon Prime Video New Zealand", type: "streamer", rank: 3, reasoning: "Amazon held NZC streaming rights in India and was the exclusive MLC broadcaster in New Zealand in 2024. A viable digital rights co-bidder alongside Sky.", source_hint: "Exclusive MLC 2024 broadcaster in NZ; held NZ cricket streaming rights in India" }
+    ],
+    marketing_leads: [
+      { name: "ANZ Bank New Zealand", type: "brand", rank: 1, reasoning: "ANZ Bank is NZC's principal sponsor and has maintained a 25-year partnership with New Zealand cricket, sponsoring both the Black Caps and White Ferns.", source_hint: "NZC principal sponsor 25 years; Black Caps and White Ferns official bank; grassroots grant program" },
+      { name: "Ford New Zealand", type: "brand", rank: 2, reasoning: "Ford is NZC's Official Vehicle Supplier since 2009 and Ford Trophy naming rights sponsor since 2011, with a partnership renewed in May 2025 for another three years.", source_hint: "Ford Trophy naming rights; official vehicle supplier since 2009; renewed May 2025 through 2028" },
+      { name: "KFC New Zealand", type: "brand", rank: 3, reasoning: "KFC is a Black Caps and White Ferns partner since November 2020 with a three-year renewal in October 2023. Also a CA sponsor with trans-Tasman cricket presence.", source_hint: "Black Caps and White Ferns partner since 2020; renewed October 2023 for 3 years; also CA sponsor" }
+    ]
+  },
+  uae: {
+    broadcast_leads: [
+      { name: "evision / e& (CricLife MAX / STARZPLAY)", type: "broadcaster", rank: 1, reasoning: "Evision holds exclusive ICC media rights for the entire MENA region through end-2027, covering all ICC men's and women's events on CricLife MAX via STARZPLAY streaming.", source_hint: "Exclusive ICC MENA rights through end-2027; CricLife MAX on STARZPLAY; all senior ICC men's and women's events" },
+      { name: "Zee Entertainment / ZEE5 (ILT20 global rights)", type: "broadcaster", rank: 2, reasoning: "Zee holds global media rights to the UAE ILT20 for $120M, broadcasting on 10 Zee linear channels and ZEE5 OTT across multiple languages. The dominant commercial cricket broadcaster for UAE league cricket.", source_hint: "ILT20 global media rights $120M; ZEE5 + 10 Zee linear channels; 150+ country coverage" },
+      { name: "beIN Sports MENA", type: "broadcaster", rank: 3, reasoning: "beIN Sports holds ECB bilateral rights for MENA in a six-year deal, plus historical IPL MENA rights and Cricket Australia bilateral rights. Reaches 24 MENA countries.", source_hint: "ECB MENA 6-year bilateral rights; historical IPL MENA rights; Cricket Australia MENA deal; 24-country reach" }
+    ],
+    marketing_leads: [
+      { name: "DP World (Dubai Ports World)", type: "brand", rank: 1, reasoning: "DP World is the ILT20 title sponsor and a Global Partner of the ICC T20 World Cup 2026. A global logistics giant headquartered in Dubai that has made cricket its primary global sports marketing platform.", source_hint: "ILT20 title sponsor; ICC T20 WC 2026 Global Partner; Dubai-headquartered global logistics leader" },
+      { name: "Emirates Airline", type: "brand", rank: 2, reasoning: "Emirates is an ICC Global Partner (T20 WC 2024 and 2026 Premier Partner) with longstanding bilateral cricket sponsorships. With a global marketing budget of $500M+, Emirates is the most geographically strategic cricket partner in the world.", source_hint: "ICC Premier Partner; T20 WC 2024 and 2026 partner; bilateral sponsorships with ECB, CA, BCCI; $500M+ marketing spend" },
+      { name: "Aramco", type: "brand", rank: 3, reasoning: "Saudi Aramco is a Global Partner of the ICC T20 World Cup 2026, marking a major new entry into cricket marketing. Represents the beginning of a broader GCC sports marketing push.", source_hint: "ICC T20 WC 2026 Global Partner; Saudi sovereign wealth entry into cricket; GCC sports marketing strategy" },
+      { name: "Marriott Bonvoy", type: "brand", rank: 4, reasoning: "Marriott Bonvoy is a Global Partner of the ICC T20 WC 2026. With the UAE hosting multiple cricket tournaments, hospitality brands see cricket as the premium vehicle for reaching the region's 15M+ annual visitors.", source_hint: "ICC T20 WC 2026 Global Partner; UAE cricket tournament hospitality activation; 15M annual UAE visitors" }
+    ]
+  },
+  usa: {
+    broadcast_leads: [
+      { name: "Willow TV (Times Internet / Cricbuzz)", type: "streamer", rank: 1, reasoning: "Willow TV holds exclusive ICC media rights in the USA and Canada through 2027, covering all 14 major ICC events. Available via Amazon Prime, Apple TV, and Roku. The definitive cricket broadcaster in North America.", source_hint: "Exclusive ICC USA+Canada rights through 2027; all 14 ICC events; Amazon Prime Video channel; Times Internet-backed" },
+      { name: "ESPN / ESPN+ (Disney Sports USA)", type: "broadcaster", rank: 2, reasoning: "ESPN holds exclusive US streaming rights for West Indies cricket via ESPN+. With ESPN's massive US sports infrastructure and 100M+ App users, they are a critical partner for any US cricket broadcast package.", source_hint: "Exclusive CWI US streaming rights via ESPN+ since 2021; T20 WC 2024 coverage; 100M+ ESPN app users" },
+      { name: "Amazon Prime Video USA", type: "streamer", rank: 3, reasoning: "Amazon was the exclusive broadcaster of the 2024 MLC season. Willow TV is distributed as a Prime Video channel. The natural platform to host a premium cricket streaming tier in the USA.", source_hint: "Exclusive MLC 2024 broadcaster in ANZ; Willow TV distributed as Prime channel; 4M+ South Asian American cricket fans" },
+      { name: "Fox Sports USA", type: "broadcaster", rank: 4, reasoning: "Fox Sports has 90M+ household reach and has been expanding into international sports. With MLC and the T20 WC 2024 raising cricket's US profile, Fox Sports is a credible candidate for broadcast rights.", source_hint: "90M+ household reach; expanding international sports portfolio; MLC and T20 WC raised US cricket profile significantly" }
+    ],
+    marketing_leads: [
+      { name: "Cognizant Technology Solutions", type: "brand", rank: 1, reasoning: "Cognizant is the first-ever MLC title sponsor (Cognizant Major League Cricket) in a multi-year deal. A US-listed IT services company with a massive South Asian American employee base.", source_hint: "MLC title sponsor 2024-present; first-ever MLC title partner; $19B revenue IT company with large South Asian workforce" },
+      { name: "Google / YouTube (Alphabet)", type: "brand", rank: 2, reasoning: "Google has been a long-time ICC global partner. YouTube is the primary free-access cricket streaming platform globally. Google's advertising ecosystem benefits directly from cricket viewership data.", source_hint: "Google historical ICC partner; YouTube primary global cricket free streaming; advertising ecosystem cricket alignment" },
+      { name: "T-Mobile USA", type: "brand", rank: 3, reasoning: "US telecom brands are aggressively courting South Asian Americans — one of the wealthiest and fastest-growing US demographics. T-Mobile has been running cricket-targeted South Asian diaspora campaigns.", source_hint: "US telcos targeting South Asian American cricket fans; T-Mobile South Asian diaspora campaigns; 4M+ South Asian American cricket fans" },
+      { name: "Lexus / Toyota USA", type: "brand", rank: 4, reasoning: "Lexus joined MLC as the official automotive partner for 2024. Toyota globally is now both CA and ECB principal sponsor. With cricket's growing US footprint, Toyota/Lexus USA has clear incentive to maintain cricket marketing rights.", source_hint: "Lexus official MLC automotive partner 2024; Toyota global cricket sponsor (CA, ECB); US diversity marketing alignment" }
+    ]
+  },
+  netherlands: {
+    broadcast_leads: [
+      { name: "NOS (Nederlandse Omroep Stichting)", type: "broadcaster", rank: 1, reasoning: "NOS is the Netherlands' primary public broadcaster and has streamed all Dutch national cricket team T20 World Cup matches live via the NOS app with Dutch commentary.", source_hint: "Streamed Netherlands T20 WC 2024 matches live; Dutch commentary; primary Dutch public broadcaster" },
+      { name: "Ziggo Sport (Liberty Global)", type: "broadcaster", rank: 2, reasoning: "Ziggo broadcast live international cricket matches in the Netherlands from 2021 — a first for both the sport and cable TV in the country. The natural pay-TV partner for cricket.", source_hint: "First Dutch cable TV cricket broadcast 2021; Netherlands vs. Ireland live; largest Dutch cable operator" },
+      { name: "DAZN Netherlands", type: "streamer", rank: 3, reasoning: "DAZN has been expanding into the Dutch sports streaming market. With a growing South Asian-heritage Dutch population and cricket's growing domestic profile, DAZN Netherlands would be a motivated OTT rights buyer.", source_hint: "Expanding into Dutch sports streaming market; South Asian-heritage Dutch population cricket interest" }
+    ],
+    marketing_leads: [
+      { name: "Heineken", type: "brand", rank: 1, reasoning: "Heineken is headquartered in Amsterdam and is already a major global cricket sponsor (ICC events, English cricket). A Dutch-headquartered global beer brand sponsoring their own national cricket team would be a logical high-profile activation.", source_hint: "Heineken HQ Amsterdam; active ICC and ECB cricket sponsor; Dutch national brand activation opportunity" },
+      { name: "ING Group", type: "brand", rank: 2, reasoning: "ING is a Dutch multinational banking group operating across 40+ countries. Cricket sponsorship aligns with ING's diversity and inclusion strategy and their reach to South Asian customers.", source_hint: "Dutch MNC bank; 40+ country presence; diversity and inclusion marketing alignment; South Asian customer base" },
+      { name: "Philips (HealthTech)", type: "brand", rank: 3, reasoning: "Philips is one of the Netherlands' most globally recognised consumer brands. A Dutch brand sponsoring Dutch cricket could provide dual activation in both the home market and South Asian growth markets.", source_hint: "Dutch global brand; cricket used in Asian market campaigns; dual Dutch home + South Asian market activation" }
+    ]
+  },
+  bangladesh: {
+    broadcast_leads: [
+      { name: "T Sports (Square Group)", type: "broadcaster", rank: 1, reasoning: "T Sports holds primary BCB cricket broadcast rights for domestic cricket including BPL 2024-25. Bangladesh's most dedicated sports channel with HD production capabilities.", source_hint: "BCB domestic rights; BPL 2024-25 rights; Square Group-backed; Bangladesh's dedicated sports channel" },
+      { name: "Gazi TV (Gazi Group)", type: "broadcaster", rank: 2, reasoning: "Gazi TV won BCB worldwide media rights for $20M covering 2014-2020 and co-holds BPL 2024 broadcast rights. Remains a significant cricket broadcasting stakeholder.", source_hint: "BCB worldwide media rights 2014-2020 $20M deal; BPL 2024 co-rights holder; Gazi Group conglomerate" },
+      { name: "Banglalink (Veon / digital streaming)", type: "streamer", rank: 3, reasoning: "Banglalink holds ICC digital streaming rights in Bangladesh through end-2025. As one of Bangladesh's largest telcos with 35M+ subscribers, Banglalink bundles cricket streaming with mobile data packages.", source_hint: "ICC digital streaming rights Bangladesh via TSM; Banglalink 35M+ subscribers; mobile cricket data bundle model" }
+    ],
+    marketing_leads: [
+      { name: "Robi Axiata (Telecommunications)", type: "brand", rank: 1, reasoning: "Robi Axiata is Bangladesh cricket's main national team sponsor through a 3.5-year deal (Feb 2024 to Jul 2027) worth 50 crore taka, covering men's, women's, and U19 national teams.", source_hint: "Bangladesh cricket main sponsor Feb 2024-Jul 2027; 50 crore taka deal; men's, women's, U19 jersey branding" },
+      { name: "Walton Group (Electronics)", type: "brand", rank: 2, reasoning: "Walton is Bangladesh's largest domestic electronics and home appliance brand. A major sports marketing spender and the most prominent domestic consumer brand investing in cricket.", source_hint: "BCB series sponsor; Bangladesh's largest domestic electronics brand; active cricket marketing investor" },
+      { name: "Dutch-Bangla Bank / BRAC Bank", type: "brand", rank: 3, reasoning: "Bangladeshi private banks are major cricket advertisers competing for the cricket-watching professional class. Strong buyers of category-exclusive marketing rights for bilateral series.", source_hint: "Dutch-Bangla Bank active BCB series sponsor; BRAC Bank cricket marketing; professional class cricket audience target" }
+    ]
+  },
+  canada: {
+    broadcast_leads: [
+      { name: "Willow TV (Times Internet / Cricbuzz)", type: "streamer", rank: 1, reasoning: "Willow TV holds exclusive ICC media rights in Canada through 2027, covering all 14 major ICC events. Available through Rogers Cable, Bell Fibe TV, and streaming via Willow.tv app.", source_hint: "Exclusive ICC Canada rights through 2027; available via Rogers, Bell Fibe; 14 ICC events covered" },
+      { name: "TSN (Bell Media / ESPN Canada)", type: "broadcaster", rank: 2, reasoning: "TSN is Canada's leading sports channel and has carried Women's Cricket World Cup 2025 coverage. TSN has the broadcast infrastructure and budget to become a serious cricket broadcaster.", source_hint: "Carried Women's Cricket World Cup 2025 in Canada; Canada's leading sports channel; Bell Media-backed" },
+      { name: "Rogers Sportsnet", type: "broadcaster", rank: 3, reasoning: "Rogers is Canada's largest telco and Sportsnet is the dominant pay-TV sports channel. Rogers cable distributes Willow TV. Strategically positioned to acquire cricket rights directly.", source_hint: "Cable distributor of Willow TV; Canada's largest telco; 2M+ South Asian Canadian cable subscribers" }
+    ],
+    marketing_leads: [
+      { name: "TD Bank (Toronto-Dominion Bank)", type: "brand", rank: 1, reasoning: "TD Bank became Cricket Canada's official bank in 2024, appearing on national team kit for the ICC T20 World Cup debut. TD is pursuing South Asian Canadian community engagement as a core growth strategy.", source_hint: "Cricket Canada official bank 2024; national team kit sponsor; women's team sponsor 2025; South Asian community strategy" },
+      { name: "Maple Leaf Foods / Mina brand", type: "brand", rank: 2, reasoning: "Maple Leaf Foods (Mina halal brand) became an official Cricket Canada partner in January 2026, targeting Canada's Muslim South Asian cricket community.", source_hint: "Official Cricket Canada partner Jan 2026; Mina halal brand; Muslim South Asian cricket fan demographic" },
+      { name: "Nissan Canada", type: "brand", rank: 3, reasoning: "Nissan is Cricket Canada's official automotive partner with a strong South Asian community marketing focus globally. Cricket is the primary vehicle to reach South Asian Canadian car buyers.", source_hint: "Cricket Canada official automotive partner; ICC global partner globally; South Asian Canadian high-income demographic" },
+      { name: "Tim Hortons", type: "brand", rank: 4, reasoning: "Tim Hortons is Canada's most iconic brand and has been expanding cricket-targeted marketing as South Asian immigration reshapes Canadian demographics. With 5,700+ locations, an ideal mass-reach cricket campaign partner.", source_hint: "Canada's most iconic brand; South Asian community marketing expansion; 5,700+ locations; mass-reach cricket campaign opportunity" }
+    ]
+  },
+  germany: {
+    broadcast_leads: [
+      { name: "DAZN Germany (DAZN DACH)", type: "streamer", rank: 1, reasoning: "DAZN is Germany's leading sports streaming platform and has been actively expanding its rights portfolio. With Germany hosting ICC T20 WC 2026 qualification events and a growing diaspora, DAZN is the most credible digital cricket rights buyer.", source_hint: "Germany's leading sports OTT; Bundesliga rights DACH through 2029; hosted ICC T20 WC 2026 European qualifier" },
+      { name: "MagentaTV / Deutsche Telekom", type: "streamer", rank: 2, reasoning: "Deutsche Telekom's MagentaTV is Germany's largest IPTV platform. As Germany's largest fixed-line provider with 15M+ broadband subscribers, MagentaTV would see cricket as a high-value content addition.", source_hint: "Germany's largest IPTV platform; active sports rights buyer; 15M+ broadband subscribers" },
+      { name: "Sky Germany (Comcast)", type: "broadcaster", rank: 3, reasoning: "Sky Germany is the dominant pay-TV sports broadcaster in Germany. As Comcast's parent holds cricket rights in the UK through Sky Sports UK, a pan-European cricket package opportunity exists.", source_hint: "Germany's dominant pay-TV sports broadcaster; Comcast-owned (same parent as Sky UK cricket holder); potential pan-European cricket package" }
+    ],
+    marketing_leads: [
+      { name: "Deutsche Bank / Commerzbank", type: "brand", rank: 1, reasoning: "German banks are targeting Germany's growing South Asian professional community — the core German cricket audience. Deutsche Bank's global reach and diversity marketing makes cricket a logical sponsorship vehicle.", source_hint: "German banking targeting South Asian professional expat community; Deutsche Bank global diversity marketing" },
+      { name: "SAP (Enterprise Software)", type: "brand", rank: 2, reasoning: "SAP has large South Asian employee bases in Germany and uses cricket sponsorship in India. Bringing that association to Germany would allow SAP to activate cricket marketing for talent acquisition.", source_hint: "SAP active cricket sponsor in India; large South Asian employee base; Germany talent acquisition via cricket marketing" },
+      { name: "Volkswagen Group / BMW Group", type: "brand", rank: 3, reasoning: "German automotive brands have strong Indian and Pakistani dealership presences. Cricket global rights offer an effective combined marketing platform for both their home market expat audience and international sales markets.", source_hint: "VW/BMW large South Asian market presence; cricket global platform for South Asian market brand building" }
+    ]
+  },
+  japan: {
+    broadcast_leads: [
+      { name: "DAZN Japan", type: "streamer", rank: 1, reasoning: "DAZN is Japan's leading sports streaming platform with 3M+ subscribers. DAZN's aggressive sports expansion strategy in Japan makes them the most credible digital cricket rights buyer.", source_hint: "Japan's leading sports OTT 3M+ subscribers; Bundesliga Japan rights 2025-26; parent company holds cricket rights in other territories" },
+      { name: "J SPORTS", type: "broadcaster", rank: 2, reasoning: "J SPORTS is Japan's premier cable sports channel and has traditionally carried international cricket and rugby. They have the subscriber base and infrastructure to distribute cricket live.", source_hint: "Japan's premier cable sports channel; historical ICC cricket coverage; rugby + cricket broadcast history" },
+      { name: "Rakuten TV (Rakuten Group)", type: "streamer", rank: 3, reasoning: "Rakuten is Japan's largest e-commerce company with an expanding streaming platform. Cricket would fit their global sports strategy targeting Japanese fans and South Asian expats in Japan.", source_hint: "Japan's largest digital ecosystem; NBA sports rights history; growing Rakuten TV sports content" }
+    ],
+    marketing_leads: [
+      { name: "Queserser (Technology company)", type: "brand", rank: 1, reasoning: "Queserser is the confirmed main sponsor of Japan's Men's National Cricket Team under a multi-year JCA partnership. They have chosen cricket as their primary sports marketing platform in Japan.", source_hint: "Confirmed JCA national team sponsor; multi-year deal; 5-country presence; chosen cricket as primary sports marketing" },
+      { name: "Sony Group Corporation", type: "brand", rank: 2, reasoning: "Sony is Japan's largest consumer electronics brand and, through Sony Pictures Networks India, a major cricket broadcast rights holder in South Asia. Uniquely positioned as both consumer brand and cricket broadcaster.", source_hint: "SPNI holds major cricket broadcast rights in India; Sony Electronics global consumer brand; dual Japan consumer + South Asian cricket rights association" },
+      { name: "Tata Consultancy Services Japan", type: "brand", rank: 3, reasoning: "TCS is one of the world's largest IT companies with significant Japan operations. TCS Japan would use cricket sponsorship for talent attraction as South Asian engineers relocating to Japan is growing.", source_hint: "Large India-Japan IT corridor; TCS global cricket sponsor; South Asian employee talent acquisition via cricket; Japan tech community" }
+    ]
+  },
+  brazil: {
+    broadcast_leads: [
+      { name: "SporTV / Globo (Organizações Globo)", type: "broadcaster", rank: 1, reasoning: "Globo is Brazil's dominant broadcaster and SporTV its dedicated sports channel. SporTV has historically acquired niche international sports to serve specific Brazilian audiences.", source_hint: "Brazil's dominant broadcaster; SporTV niche international sports model; cricket revenue growing annually in Brazil" },
+      { name: "DAZN Brazil", type: "streamer", rank: 2, reasoning: "DAZN holds major sports rights in Brazil and is positioned to expand further. As a global cricket rights holder in other markets, DAZN would naturally include cricket in Brazil as part of a global package.", source_hint: "Active in Brazil sports streaming market; FIFA Club World Cup Brazil rights; global sports OTT with potential cricket package inclusion" },
+      { name: "CazéTV / YouTube Brazil", type: "streamer", rank: 3, reasoning: "CazéTV has emerged as the most-watched sports streaming platform in Brazil for non-football events with 10M+ YouTube subscribers. The breakthrough channel for introducing cricket to Brazil.", source_hint: "10M+ YouTube subscribers; NFL and boxing free streaming in Brazil; breakthrough non-football sports channel" }
+    ],
+    marketing_leads: [
+      { name: "Nubank (Nu Holdings)", type: "brand", rank: 1, reasoning: "Nubank has 60M+ Brazilian users and is exploring non-football sports. Fintech brands see cricket as an emerging community activation platform for the growing Indian, Pakistani, and Caribbean diaspora in Brazil.", source_hint: "Nubank 60M+ users; aggressive sports marketing; Brazilian diaspora cricket community growing; fintech community activation" },
+      { name: "Itaú Unibanco", type: "brand", rank: 2, reasoning: "Itaú Unibanco is Latin America's largest private bank and one of Brazil's biggest sports marketing spenders. With a push to reach Brazil's growing South Asian diaspora and appetite for niche sports sponsorship.", source_hint: "Itaú largest LatAm private bank; major sports marketing budget; South Asian Brazilian diaspora financial services target" },
+      { name: "Embraer (Aerospace)", type: "brand", rank: 3, reasoning: "Embraer has large commercial operations in India where cricket is the national sport. Cricket global sponsorship allows Embraer to simultaneously activate in Brazil and across cricket-playing nations.", source_hint: "Embraer large India operations; Brazil-India trade relationship; cricket global rights = dual Brazil + South Asia activation" }
+    ]
+  }
+};
+
+// ═══════════════════════════════════════════════════
+// DATA — RUGBY TERRITORIES
+// ═══════════════════════════════════════════════════
+const RUGBY_TERRITORIES = [
+  { id: "france", name: "France", flag: "🇫🇷", tv_score: 5, digital_score: 4, highlights_score: 4, marketing_score: 5, key_facts: ["TF1 secured exclusive French RWC 2027 broadcast rights plus Nations Championship 2026–2029 covering 122+ matches; the RWC 2023 deal cost exceeded €40M", "Opening match France vs NZ on 8 Sep 2023 commanded €290,000 per 30-second ad slot — €20,000 more than the 2022 FIFA World Cup final rate", "Societe Generale served as Worldwide Partner for RWC 2023 at >$7M annual value; French brands had dominant domestic activation", "TF1 sub-licensed 18 matches to M6 and 10 to France Télévisions for complete FTA coverage across all 48 matches in 2023"], surprise_factor: "France's advertising CPM for RWC 2023 exceeded the FIFA World Cup final — the first time rugby has out-priced football in the French ad market." },
+  { id: "england", name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tv_score: 5, digital_score: 5, highlights_score: 4, marketing_score: 5, key_facts: ["England vs South Africa RWC 2023 semi-final peaked at 8.7 million viewers on ITV1 — ITV's biggest audience of the entire year, surpassing King Charles III's coronation", "ITVX streamed 50+ million times during RWC 2023; quarter-final day was ITVX's single biggest day of 2023 with 14 million streams", "ITV secured Nations Championship rights in a deal worth over £90 million through 2029, covering all 12-team Nations Championship matches", "Allianz signed a 10-year naming rights deal for Twickenham Stadium worth over £100 million (rebranded 'Allianz Stadium' from September 2024)"], surprise_factor: "ITV's £90M Nations Championship deal makes England the most expensive rugby broadcast market globally outside France, with ITV paying more per match than Sky does for Premier League fixtures on a per-minute basis." },
+  { id: "new_zealand", name: "New Zealand", flag: "🇳🇿", tv_score: 5, digital_score: 4, highlights_score: 3, marketing_score: 4, key_facts: ["2.5 million New Zealanders watched RWC 2023 matches on Sky Sport and Sky Open — in a country of just 5 million", "RWC 2023 final drew 1.5 million viewers on Sky Open — highest-rated programme of 2023 in AP25-54 demo with 27.5% audience rating", "7 million streams on Sky Go and Sky Sport Now during the tournament; 71,000+ watched te reo Māori commentary", "Ineos Grenadiers became All Blacks' principal jersey sponsor from 2022 in a deal reportedly worth USD 100M+ over 5 years — largest in All Blacks history"], surprise_factor: "In a country of 5 million, half the total population watched at least one RWC 2023 match — making NZ pound-for-pound the world's most engaged rugby broadcast market." },
+  { id: "south_africa", name: "South Africa", flag: "🇿🇦", tv_score: 5, digital_score: 3, highlights_score: 4, marketing_score: 4, key_facts: ["South Africa's RWC 2023 final drew 10.9 million unique live viewers across four linear channels — 26% more than the 2022 FIFA World Cup Final in South Africa", "SuperSport (DStv/MultiChoice) held exclusive broadcast rights; SABC aired 16 matches FTA via a Castle Lager-brokered sub-licensing deal", "Nielsen Sports SA reported 86% of South African sports fans showed top-level interest in RWC 2023 — the highest of any single sport event tracked that year", "South Africa is four-time Rugby World Cup champion (1995, 2007, 2019, 2023)"], surprise_factor: "The 2023 RWC final outrated the FIFA World Cup Final in South Africa — a remarkable inversion of global sports hierarchy." },
+  { id: "australia", name: "Australia", flag: "🇦🇺", tv_score: 4, digital_score: 5, highlights_score: 3, marketing_score: 4, key_facts: ["Stan Sport (Nine Entertainment) secured RWC 2023 exclusive rights and extended to RWC 2027 (Australia host), Women's RWC 2025 and 2029 — largest rugby broadcast deal in Australian history", "Australia is the host nation for Rugby World Cup 2027 (Oct 1–Nov 13, 2027) across 7 cities; projected AUD $1.06 billion economic impact", "Stan Sport grew rugby subscribers 40%+ year-on-year during RWC 2023", "Qantas is the Wallabies' principal airline sponsor and will be official airline of RWC 2027"], surprise_factor: "As host of RWC 2027, Australia's broadcast rights are the most commercially valuable non-France package in the 2027 cycle — Nine/Stan's deal is reportedly the largest rugby rights acquisition ever made in the southern hemisphere." },
+  { id: "japan", name: "Japan", flag: "🇯🇵", tv_score: 5, digital_score: 4, highlights_score: 3, marketing_score: 5, key_facts: ["Japan generated 425 million cumulative viewers for RWC 2019 — more than half of the entire global audience of 851 million", "Japan vs Scotland pool match (Oct 13, 2019) drew 54.8 million viewers on NTV — the highest-rated rugby broadcast in history", "For RWC 2023: NHK broadcast 15 matches, Nippon TV held 19 including the final, DAZN and J Sports aired all 48 matches", "Asahi Breweries is a RWC Worldwide Partner at >$7M annual value; Japan is Asahi's single highest-value rugby activation market"], surprise_factor: "Japan is statistically the world's largest single-country rugby broadcast market by cumulative audience — ahead of France, England and South Africa. The 2019 legacy transformed Japan into World Rugby's most commercially important territory." },
+  { id: "ireland", name: "Ireland", flag: "🇮🇪", tv_score: 5, digital_score: 4, highlights_score: 3, marketing_score: 4, key_facts: ["3.4 million viewers watched RWC 2023 across RTÉ and Virgin Media Television — reaching 75% of Ireland's total TV-watching population", "Ireland vs New Zealand quarter-final peaked at 1.38 million average viewers on Virgin Media One (78% audience share) — Virgin Media's most-watched programme in its history", "ITV's £90M Nations Championship deal covers UK and Ireland jointly (2026–2029) with Virgin Media Television as Irish partner", "PwC renewed as IRFU Main Sponsor through December 2027 — a 19-year consecutive partnership, the longest in Irish rugby history"], surprise_factor: "Ireland achieves audience share figures above 75% for key rugby matches — a level of national engagement comparable to the Super Bowl in the USA, despite being a nation of just 5 million." },
+  { id: "argentina", name: "Argentina", flag: "🇦🇷", tv_score: 4, digital_score: 3, highlights_score: 3, marketing_score: 3, key_facts: ["Argentina's Los Pumas reached the RWC 2023 semi-finals, significantly boosting domestic viewership and broadcaster deal values", "ESPN Latin America and Disney+ are primary broadcast partners for Rugby World Cup and The Rugby Championship in Argentina", "Argentina is a Nations Championship founding member from 2026 — expected to increase ESPN/Disney+ Latin America broadcast deal values", "Union Argentina de Rugby has grown registered player numbers to 120,000+ — Latin America's largest rugby union membership"], surprise_factor: "Argentina's semi-final run in 2023 triggered a broadcaster bidding war for Nations Championship rights in Latin America — a market that barely existed commercially before 2019." },
+  { id: "usa", name: "USA", flag: "🇺🇸", tv_score: 3, digital_score: 5, highlights_score: 4, marketing_score: 4, key_facts: ["World Rugby signed a landmark exclusive multi-platform deal with CBS Sports/Paramount+ through 2029 — largest-ever multi-platform rugby distribution agreement in US history", "RWC 2023 US viewership hit 11.1 million total viewing hours on Peacock/NBC — a 136% increase over RWC 2015", "ESPN signed a multiyear MLR media rights deal in February 2025 (all games on ESPN+); MLR saw 258% streaming viewership growth in 2025", "USA is host nation for Rugby World Cup 2031 (Men's) and 2033 (Women's); SoFi Stadium and AT&T Stadium confirmed as RWC 2031 venues"], surprise_factor: "The USA has simultaneously secured hosting rights for both the 2031 Men's and 2033 Women's Rugby World Cups — making it the most strategically important growth market in rugby over the next decade." },
+  { id: "italy", name: "Italy", flag: "🇮🇹", tv_score: 3, digital_score: 3, highlights_score: 3, marketing_score: 3, key_facts: ["RAI secured RWC 2023 Italian broadcast rights with 19 matches FTA; Sky Sport Italy covered all 48 matches", "Italy beat England 49-37 at Twickenham in the 2023 Six Nations (Italy's largest-ever margin of victory over England) — driving a 40% spike in Italian rugby viewership", "Guinness Six Nations title sponsorship generates $26.33M annually across all Six Nations partners", "Italy is a Nations Championship founding member from 2026; RAI is expected to retain FTA rights"], surprise_factor: "Italy's 2023 Six Nations win over England at Twickenham drove a 40% spike in Italian rugby broadcast viewership — evidence that performance-led upswings can dramatically shift a market's commercial value overnight." },
+  { id: "wales", name: "Wales", flag: "🏴󠁧󠁢󠁷󠁭󠁬󠁳󠁿", tv_score: 4, digital_score: 3, highlights_score: 3, marketing_score: 3, key_facts: ["ITV broadcast Wales vs Argentina quarter-final at RWC 2023; BBC provided dedicated Welsh-language coverage via BBC Radio Cymru", "BBC and ITV agreed a four-year Six Nations deal through 2029 keeping all Wales matches free-to-air; Welsh Six Nations matches regularly hit 60%+ audience share in Wales", "Principality Building Society holds naming rights to Principality Stadium (74,500 capacity, Wales national rugby venue)", "Under Armour holds the Wales Rugby jersey kit deal — one of the best-selling national rugby jerseys globally due to the iconic red design"], surprise_factor: "Despite a commercially smaller market than England or France, Wales delivers audience share percentages for key rugby matches that rival any territory in the world — the 2023 Six Nations Wales vs England match hit over 70% of Welsh viewers." },
+  { id: "scotland", name: "Scotland", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", tv_score: 3, digital_score: 3, highlights_score: 3, marketing_score: 3, key_facts: ["BBC and ITV jointly hold Six Nations and Nations Championship free-to-air rights in Scotland through 2029 via STV", "Scotland vs South Africa pool match at RWC 2023 was among the most-watched Scottish rugby broadcasts of 2023", "Allianz is Twickenham's naming rights holder (£100M+ deal); Scotland's Murrayfield averages 67,000 per Six Nations match — home sellouts are standard", "BT (now EE) is a long-term sponsor of Scottish Rugby; Vodafone is a principal Scotland and British & Irish Lions sponsor"], surprise_factor: "Murrayfield is consistently sold out for Six Nations matches despite Scotland not winning the championship since 1999 — a fanbase that remains commercially engaged regardless of on-field results." },
+  { id: "canada", name: "Canada", flag: "🇨🇦", tv_score: 2, digital_score: 3, highlights_score: 2, marketing_score: 2, key_facts: ["TSN (Bell Media, English) and RDS (French) held RWC 2023 broadcast rights in Canada with streaming via TSN Direct", "Canada failed to qualify for RWC 2023 — severely dampening domestic broadcaster interest and audience numbers", "Rugby Canada's registered player base fell from 27,000 (2015) to ~18,000 (2023) following COVID and consecutive missed World Cups", "HSBC Canada activates via HSBC SVNS title sponsorship; Canada Sevens in Vancouver attracts 30,000+ fans per day at BC Place"], surprise_factor: "Canada was once a top-10 rugby nation (RWC quarter-finalists in 1991 and 2003) but has missed two consecutive World Cups, creating an unusual media dynamic where broadcasters cover RWC with zero premium national team content." },
+  { id: "fiji", name: "Fiji", flag: "🇫🇯", tv_score: 3, digital_score: 2, highlights_score: 3, marketing_score: 2, key_facts: ["Fiji Television secured exclusive RWC 2023 broadcast rights across Fiji and the Pacific region; all 48 matches broadcast live and FTA on Fiji One, covering 9 Pacific nations", "Fiji Flying Fijians reached the RWC 2023 quarter-finals (lost to England 30-22) — generating peak domestic TV audiences", "Fiji won Olympic gold in rugby sevens at Rio 2016 and Tokyo 2020; HSBC is title sponsor of HSBC SVNS where Fiji are perennial contenders", "World Rugby Nations Championship 2026 includes Fiji as one of 12 founding nations — elevating Pacific rugby commercially for the first time"], surprise_factor: "Fiji has the highest per-capita rugby participation rate of any country in the world — yet its broadcast market is tiny. The 2026 Nations Championship inclusion is the first time Fiji's global brand value has been formally monetised at the top tier of rugby's commercial structure." },
+  { id: "samoa", name: "Samoa", flag: "🇼🇸", tv_score: 2, digital_score: 2, highlights_score: 3, marketing_score: 2, key_facts: ["Samoa's RWC 2023 broadcast was sub-licensed by Fiji Television, covering Pacific island territories FTA via TV Samoa", "Samoa did not qualify for RWC 2023 — historically Samoa had qualified for every RWC from 1991 to 2019", "Samoa's diaspora in New Zealand (300,000+ Samoan-heritage residents) makes Sky NZ a key distribution channel for Samoan viewers", "World Rugby's Pacific pathway (Moana Pasifika in Super Rugby Pacific from 2022) has increased commercial visibility for Samoa"], surprise_factor: "Samoa's greatest commercial rugby market isn't in Samoa — it's in New Zealand, where 300,000+ Samoan diaspora residents make Sky NZ's Manu Samoa coverage highly commercially valuable for Pacific-focused brands." },
+  { id: "georgia", name: "Georgia", flag: "🇬🇪", tv_score: 3, digital_score: 2, highlights_score: 2, marketing_score: 2, key_facts: ["GPB (Georgian Public Broadcasting) held RWC 2023 domestic broadcast rights; rugby union is one of Georgia's top 3 sports by national viewership", "Georgia qualified for every Rugby World Cup since 2003 (7 consecutive); RWC 2023 pool match Georgia vs Fiji was the domestic peak audience", "Georgia will host the 2026 World Rugby Junior World Championship (expanded to 16 teams) — the second time Georgia hosts (also 2017)", "TBC Bank is Georgia's largest bank and the primary domestic rugby sponsor — the most commercially significant sports sponsorship in the country"], surprise_factor: "Despite a population of just 3.7 million, Georgia is ranked in the world's top 12 rugby nations and hosts the 2026 World Rugby Junior Championship — making it the most commercially under-monetised rugby market relative to its competitive standing." },
+  { id: "uruguay", name: "Uruguay", flag: "🇺🇾", tv_score: 2, digital_score: 2, highlights_score: 2, marketing_score: 2, key_facts: ["Channel 10 (Montevideo) held RWC 2023 broadcast rights in Uruguay; Los Teros qualified for RWC 2023 Pool B", "ESPN Latin America covers South American rugby including Rugby Championship Américas and Superliga Americana de Rugby", "Los Teros ranked 14th globally (World Rugby Rankings 2024); Uruguay beat Kenya to qualify for RWC 2027 in Australia", "Antel (national telecoms) and BROU (state bank) are primary domestic rugby sponsors; Uruguay is the only nation outside top 10 to qualify for every RWC since 1999"], surprise_factor: "Uruguay is the only nation ranked outside the top 10 to have qualified for every Rugby World Cup since 1999 — a consistency that makes Uruguay commercially interesting for brands seeking multi-cycle LATAM rugby presence." }
+];
+
+// ═══════════════════════════════════════════════════
+// DATA — RUGBY LEADS (abbreviated to key leads per territory)
+// ═══════════════════════════════════════════════════
+const RUGBY_LEADS = {
+  france: {
+    broadcast_leads: [
+      { name: "TF1 Group", type: "broadcaster", rank: 1, reasoning: "TF1 has held primary French RWC broadcast rights since 1991 and secured exclusive rights for RWC 2027 in Australia plus Nations Championship 2026–2029 covering 122+ live matches. The RWC 2023 deal cost exceeded €40M. The clear lead broadcast partner for the French market.", source_hint: "world.rugby/media-zone; sportspro.com RWC 2027 TF1 deal" },
+      { name: "M6", type: "broadcaster", rank: 2, reasoning: "Aired 18 matches via TF1 sub-license for RWC 2023 — the largest sub-licensed package. M6 has demonstrated appetite for premium rugby and its younger demographic skew makes it valuable for brands targeting 25–44 in France.", source_hint: "sportcal.com TF1 sub-licenses RWC 2023" },
+      { name: "Canal+", type: "broadcaster", rank: 3, reasoning: "Canal+ holds domestic Top 14 and Pro D2 broadcast rights in France. A natural pay-TV partner for RWC highlights and extended Nations Championship coverage with 4M+ French subscribers.", source_hint: "canal+.fr rugby programme; SVG Europe RWC 2023 broadcast preview" },
+      { name: "France Télévisions", type: "broadcaster", rank: 4, reasoning: "Sub-licensed 10 matches from TF1 for RWC 2023, providing free-to-air coverage to the public service audience. A standard sub-licensing partner for the highest-profile RWC moments.", source_hint: "sportcal.com TF1 sub-licenses RWC 2023; lemonde.fr RWC 2023" }
+    ],
+    marketing_leads: [
+      { name: "Societe Generale", type: "brand", rank: 1, reasoning: "Societe Generale was a Worldwide Partner of RWC 2023 at >$7M annual value — the most obvious French financial services brand for any rugby commercial activation. SocGen's rugby heritage goes back to the 1999 Six Nations title sponsorship.", source_hint: "rugbyworldcup.com/2023/commercial-partners/societe-generale" },
+      { name: "Capgemini", type: "brand", rank: 2, reasoning: "Capgemini was the official RWC 2023 Global Digital Transformation Partner at >$7M annual value and presents World Rugby Rankings. As a French-headquartered global tech firm, France is their highest-value rugby activation market.", source_hint: "rugbyworldcup.com/2023/commercial-partners/capgemini" },
+      { name: "Orange", type: "brand", rank: 3, reasoning: "Orange (France Télécom) has been a long-term sponsor of French national rugby and the Top 14 competition; its digital activation during RWC 2023 drove significant social engagement in France.", source_hint: "sportspro.com RWC 2023 commercial preview; Top 14 sponsor records" },
+      { name: "Mastercard", type: "brand", rank: 4, reasoning: "Mastercard was a Worldwide Partner of RWC 2023 at >$7M annual value and activates globally across match-day ticketing and fan experience. France is its most commercially active RWC territory given the host-nation premium.", source_hint: "rugbyworldcup.com commercial partners 2023" }
+    ]
+  },
+  england: {
+    broadcast_leads: [
+      { name: "ITV / ITVX", type: "broadcaster", rank: 1, reasoning: "ITV broadcast all England RWC 2023 matches free-to-air; the England vs South Africa semi-final peaked at 8.7 million viewers — ITV's biggest audience of 2023. ITV signed the Nations Championship rights for £90M+ through 2029.", source_hint: "sportbusiness.com ITV 8.7M peak; broadbandtvnews.com ITV £90M Nations Championship" },
+      { name: "TNT Sports (Warner Bros. Discovery)", type: "broadcaster", rank: 2, reasoning: "TNT Sports holds premium club rugby rights in the UK including European Champions Cup and Premiership Rugby. The pay-TV complement to ITV's free-to-air, targeting the committed rugby subscriber.", source_hint: "sportspro.com UK rugby rights landscape; TNT Sports broadcast schedule" },
+      { name: "Sky Sports", type: "broadcaster", rank: 3, reasoning: "Sky Sports covers Premiership Rugby and holds partial European rugby rights. With 8M+ UK households and Sky Sports Action, Sky is a strong secondary bidder for any RWC package not awarded to ITV or TNT.", source_hint: "sportspro.com UK rugby rights; Sky Sports broadcast rights overview" },
+      { name: "BBC", type: "broadcaster", rank: 4, reasoning: "BBC secured exclusive audio rights to all 48 RWC 2023 matches via BBC Radio 5 Live; the BBC/ITV shared Six Nations FTA deal through 2029 ensures BBC remains a key distribution partner for England rugby content.", source_hint: "bbc.com/sport RWC 2023 audio rights announcement" }
+    ],
+    marketing_leads: [
+      { name: "Allianz", type: "brand", rank: 1, reasoning: "Allianz signed a 10-year naming rights deal for Twickenham Stadium worth £100M+ (rebranded 'Allianz Stadium' September 2024) and has a long-term RFU partnership. No other brand has made a comparable financial commitment to English rugby.", source_hint: "englandrugby.com Allianz partnership; reuters.com Allianz Stadium rebrand" },
+      { name: "O2 (Telefonica UK)", type: "brand", rank: 2, reasoning: "O2 has been the England Rugby shirt sponsor since 2017 in a deal extended to 2027 reportedly worth £35M+ over the term. O2's '#WearTheRose' campaign is one of the most-recognised rugby sponsorship activations in the UK.", source_hint: "englandrugby.com commercial partners" },
+      { name: "Guinness (Diageo)", type: "brand", rank: 3, reasoning: "Guinness is the Allianz Six Nations title sponsor ($26.33M annual sponsor value across all partners). England Six Nations matches are Guinness's most commercially valuable rugby activation globally with audiences of 5M+ each.", source_hint: "globenewswire.com 2024 Six Nations post-event analysis" },
+      { name: "Land Rover (JLR)", type: "brand", rank: 4, reasoning: "Land Rover is a RWC Worldwide Partner at >$7M annual value and title sponsor of England's national grassroots rugby programme. JLR activates heavily at Twickenham and in the Six Nations.", source_hint: "rugbyworldcup.com commercial partners; RFU sponsor listings" }
+    ]
+  },
+  new_zealand: {
+    broadcast_leads: [
+      { name: "Sky New Zealand", type: "broadcaster", rank: 1, reasoning: "Sky NZ delivered 2.5 million viewers across RWC 2023 in a country of 5 million. Sky holds comprehensive All Blacks, Super Rugby Pacific, and RWC rights — it is the exclusive domestic broadcast home of New Zealand rugby.", source_hint: "mad-daily.com Sky RWC numbers; nzherald.co.nz RWC final viewers" },
+      { name: "Sky Open (formerly Prime TV)", type: "broadcaster", rank: 2, reasoning: "Sky's free-to-air channel Sky Open simulcast key RWC matches; the final drew 1.5M viewers as the highest-rated programme of 2023. Its reach beyond Sky's pay-TV subscriber base is critical for maximum-audience RWC moments.", source_hint: "nzherald.co.nz RWC 2023 final viewing data" },
+      { name: "TVNZ+ / TVNZ 1 & 2", type: "streamer", rank: 3, reasoning: "TVNZ is NZ's primary free-to-air public broadcaster and covers selected rugby highlights; TVNZ+ (streaming, 2M+ registered users) is a natural digital rights partner for RWC highlights and catch-up content.", source_hint: "tvnz.co.nz sports programming; NZ media landscape reports" }
+    ],
+    marketing_leads: [
+      { name: "Ineos Grenadiers", type: "brand", rank: 1, reasoning: "Ineos became the All Blacks' principal jersey sponsor from 2022 in a deal reportedly worth USD 100M+ over 5 years — the largest sponsorship in All Blacks history and one of the largest in world rugby.", source_hint: "allblacks.com Ineos partnership announcement 2022" },
+      { name: "Adidas", type: "brand", rank: 2, reasoning: "Adidas holds the All Blacks kit manufacturing deal extended through 2030 (reportedly USD 100M+). The All Blacks jersey is the world's best-selling rugby jersey globally and Adidas uses NZ as its primary rugby brand market.", source_hint: "sportspro.com Adidas All Blacks kit deal" },
+      { name: "Asahi Super Dry", type: "brand", rank: 3, reasoning: "Asahi is a RWC Worldwide Partner at >$7M annually and an All Blacks official beer partner. Asahi's dual role as domestic Japanese brand and global rugby partner makes Japan-NZ the rugby connection central to its marketing.", source_hint: "rugbyworldcup.com Asahi partnership; allblacks.com commercial partners" }
+    ]
+  },
+  south_africa: {
+    broadcast_leads: [
+      { name: "SuperSport (MultiChoice/DStv)", type: "broadcaster", rank: 1, reasoning: "SuperSport holds exclusive South African broadcast rights for the RWC; the 2023 final drew 10.9 million unique live viewers in SA across four channels — a record. SuperSport also broadcasts Super Rugby, URC, British & Irish Lions, and all Springbok matches.", source_hint: "mybroadband.co.za SuperSport DStv RWC rights; sabcsport.com 2023 viewing records" },
+      { name: "SABC (SABC 2)", type: "broadcaster", rank: 2, reasoning: "SABC sub-licensed 16 RWC 2023 matches including all Springbok games under a Castle Lager deal; SABC 2 provided FTA access to an estimated 20M+ viewers without DStv subscriptions. SABC's rural and lower-income reach is unmatched.", source_hint: "mybroadband.co.za SABC DStv RWC deal" },
+      { name: "Showmax (MultiChoice)", type: "streamer", rank: 3, reasoning: "Showmax is MultiChoice's streaming platform (rebranded with NBC Universal investment in 2024) and is the primary OTT destination for SuperSport content in South Africa. Growing smartphone penetration makes Showmax increasingly important.", source_hint: "multichoice.com Showmax rebrand 2024; SuperSport streaming strategy" }
+    ],
+    marketing_leads: [
+      { name: "Castle Lager (SAB / AB InBev)", type: "brand", rank: 1, reasoning: "Castle Lager is Springboks' jersey sponsor and brokered the SABC sub-licensing deal for RWC 2023, directly enabling 20M+ South Africans to watch Springbok matches for free. Castle Lager's rugby spend is estimated at R300M+ per year.", source_hint: "gq.co.za Castle Lager SABC deal; thesouthafrican.com Springboks broadcast" },
+      { name: "Vodacom", type: "brand", rank: 2, reasoning: "Vodacom is a principal sponsor of South African rugby including title sponsorship of Vodacom Super Rugby. Vodacom's 44M+ South African subscribers make it the country's largest telecom rugby activator.", source_hint: "vodacom.co.za rugby sponsorship; SA Rugby commercial partners" },
+      { name: "Emirates", type: "brand", rank: 3, reasoning: "Emirates is a RWC Worldwide Partner through 2027 and Official Airline sponsor. Its Johannesburg and Cape Town routes make South Africa one of its key activation markets. Emirates also sponsors the Emirates Lions Super Rugby franchise.", source_hint: "rugbyworldcup.com Emirates partnership; emirates.com sports sponsorship" }
+    ]
+  },
+  australia: {
+    broadcast_leads: [
+      { name: "Stan Sport (Nine Entertainment)", type: "streamer", rank: 1, reasoning: "Stan Sport secured exclusive RWC 2023 rights and extended to RWC 2027 (Australia host), Women's RWC 2025 and 2029 — the largest rugby broadcast deal in Australian history. All 52 RWC 2027 matches will stream on Stan Sport ad-free in 4K.", source_hint: "brisbanetimes.com.au Nine Stan Sport RWC deal 2025" },
+      { name: "Nine Network / 9Now", type: "broadcaster", rank: 2, reasoning: "Nine simulcast Wallabies matches and the RWC 2023 Final free-to-air on Nine Network. As host broadcaster for RWC 2027, Nine Network will provide primary free-to-air terrestrial broadcast reaching 18M+ Australians without Stan subscriptions.", source_hint: "Nine Network broadcast rights; brisbanetimes.com.au Nine Stan RWC deal" },
+      { name: "Foxtel / Fox Sports", type: "broadcaster", rank: 3, reasoning: "Foxtel/Fox Sports holds Super Rugby Pacific rights in Australia and is the pay-TV home of the Wallabies outside Nine/Stan's deal. Foxtel's 4M+ subscriber base represents the premium Australian rugby audience.", source_hint: "foxsports.com.au rugby rights" }
+    ],
+    marketing_leads: [
+      { name: "Qantas", type: "brand", rank: 1, reasoning: "Qantas is the Wallabies' principal airline sponsor and will be the official airline of RWC 2027 (Australia host); historically Australia's most commercially active rugby partner with spend estimated at AUD 15M+ annually.", source_hint: "rugby.com.au Qantas Wallabies partnership" },
+      { name: "Emirates", type: "brand", rank: 2, reasoning: "Emirates is a RWC Worldwide Partner through 2027 and activates across all Australian RWC 2027 venues given its major Australian route network. RWC 2027 will be one of Emirates' largest global sporting campaigns.", source_hint: "rugbyworldcup.com Emirates 2027 partnership extension" },
+      { name: "Asahi Breweries", type: "brand", rank: 3, reasoning: "Asahi is a RWC Worldwide Partner at >$7M annual value and the Official Beer of RWC 2027. Its Australian market presence (Asahi Australia, Peroni, Carlton) makes it one of the most commercially active FMCG brands at Australian rugby events.", source_hint: "rugbyworldcup.com Asahi partnership; Asahi Australia market presence" }
+    ]
+  },
+  japan: {
+    broadcast_leads: [
+      { name: "Nippon TV (NTV)", type: "broadcaster", rank: 1, reasoning: "NTV drew 54.8 million viewers for Japan vs Scotland in 2019 — the highest-rated rugby broadcast in history. For RWC 2023, NTV held 19 matches including the final. Japan's most commercially powerful free-to-air network.", source_hint: "reuters.com Japan vs Scotland 54.8M viewers; sportspro.com Japan RWC 2023 rights" },
+      { name: "NHK", type: "broadcaster", rank: 2, reasoning: "NHK held 15 RWC 2023 matches plus a dedicated digital portal. NHK's universal reach across Japan's 50M+ TV households ensures maximum audience coverage for any RWC moment deemed of national significance.", source_hint: "sportspro.com Japan RWC 2023 rights; NHK broadcast schedule" },
+      { name: "DAZN Japan", type: "streamer", rank: 3, reasoning: "DAZN Japan is one of DAZN's most successful markets globally; held partial RWC 2023 streaming rights alongside NHK/NTV/J Sports. Japan is DAZN's second-largest global market after Germany.", source_hint: "sportscriber.com RWC 2023 worldwide broadcast channels" },
+      { name: "J Sports", type: "broadcaster", rank: 4, reasoning: "J Sports aired all 48 RWC 2023 matches in Japan including 18 exclusive broadcasts. Japan's dedicated multi-channel sports cable network is the pay-TV home for the committed Japanese rugby fan.", source_hint: "sportspro.com Japan RWC 2023 rights; Japan Today NTV NHK J Sports" }
+    ],
+    marketing_leads: [
+      { name: "Asahi Breweries", type: "brand", rank: 1, reasoning: "Asahi is a RWC Worldwide Partner at >$7M annually and Japan's leading brewery. Its dual role as domestic Japanese brand and global rugby partner makes Japan its single highest-value rugby activation market.", source_hint: "rugbyworldcup.com Asahi commercial partner" },
+      { name: "Toyota", type: "brand", rank: 2, reasoning: "Toyota Verblitz is one of Japan's most commercially successful rugby clubs; Toyota is a long-term World Rugby partner and activates across global rugby including Brave Blossoms sponsorship. Toyota's global rugby spend is estimated at USD 20M+ per year.", source_hint: "japanrugby.jp Toyota partnership; World Rugby commercial partner listings" },
+      { name: "NTT", type: "brand", rank: 3, reasoning: "NTT is an official RWC technology sponsor; NTT's digital infrastructure role in RWC 2019 (Japan) established it as a key commercial partner and it continues to activate globally from its Japanese base.", source_hint: "rugbyworldcup.com NTT technology partner" }
+    ]
+  },
+  ireland: {
+    broadcast_leads: [
+      { name: "Virgin Media Television", type: "broadcaster", rank: 1, reasoning: "Virgin Media One's Ireland vs NZ quarter-final broadcast averaged 1.38M viewers (78% audience share) — Virgin Media's most-watched programme in its history. Virgin Media Television is the commercial FTA partner for Nations Championship and ITV's Irish co-broadcaster through 2029.", source_hint: "extra.ie Virgin Media Ireland record viewers; adworld.ie RWC 2023 figures" },
+      { name: "RTÉ", type: "broadcaster", rank: 2, reasoning: "RTÉ held joint RWC 2023 rights with Virgin Media; combined reach was 3.4 million viewers reaching 75% of Ireland's potential TV population. RTÉ's universal FTA reach complements Virgin Media's commercial base.", source_hint: "rte.ie/insights RWC 2023 viewership; adworld.ie RWC Ireland figures" },
+      { name: "Sky Ireland", type: "broadcaster", rank: 3, reasoning: "Sky Ireland reaches 700,000+ subscribers and carries Sky Sports with Premiership Rugby and European rugby rights. Sky Ireland's sports package serves the committed Irish rugby fan beyond RTÉ/Virgin Media's commercial FTA offering.", source_hint: "sky.com/ie sports; Irish broadcast market analysis" }
+    ],
+    marketing_leads: [
+      { name: "Guinness (Diageo Ireland)", type: "brand", rank: 1, reasoning: "Guinness is Six Nations title sponsor and historically Ireland's most commercially prominent rugby sponsor. Ireland vs England Six Nations matches are Guinness's single highest-CPM advertising event in the Irish market, topping 1.2M viewers in a country of 5 million.", source_hint: "sixnationsrugby.com Guinness title sponsorship; diageo annual report" },
+      { name: "PwC Ireland", type: "brand", rank: 2, reasoning: "PwC renewed as IRFU Main Sponsor through December 2027 — its 19th consecutive year. PwC sponsors Ireland U20, U18 and National Talent Squad, providing unmatched institutional depth in Irish rugby.", source_hint: "pwc.ie IRFU renewal press release 2024" },
+      { name: "Vodafone Ireland", type: "brand", rank: 3, reasoning: "Vodafone Ireland is a principal IRFU sponsor; during RWC 2023 when Ireland were ranked world No.1, Vodafone's digital rugby content generated the highest engagement of any Irish telecom rugby campaign on record.", source_hint: "irfu.ie commercial partners; vodafone.ie rugby sponsorship" }
+    ]
+  },
+  argentina: {
+    broadcast_leads: [
+      { name: "ESPN Latin America (Disney+)", type: "broadcaster", rank: 1, reasoning: "ESPN Latin America and Disney+ hold broadcast rights for the Rugby Championship, Six Nations Latin American feed, and RWC in Argentina. Disney+'s streaming service is the primary digital distribution channel for international rugby in Argentina and wider LATAM.", source_hint: "espn.com.ar rugby rights; sportscriber.com RWC 2023 Americas broadcast" },
+      { name: "TyC Sports", type: "broadcaster", rank: 2, reasoning: "TyC Sports is Argentina's primary pay-TV sports channel and a domestic broadcaster for Los Pumas national team matches. It provides the Spanish-language analysis and studio shows that are the backbone of Argentine rugby media.", source_hint: "tycsports.com rugby; Argentine sports broadcast market" },
+      { name: "Canal 7 (TV Pública)", type: "broadcaster", rank: 3, reasoning: "Argentina's public broadcaster Canal 7 provides FTA coverage of Los Pumas' highest-profile matches. The 2023 semi-final run triggered Canal 7's highest rugby audience in a decade.", source_hint: "tvpublica.com.ar rugby; Argentine RWC 2023 coverage" }
+    ],
+    marketing_leads: [
+      { name: "Mercado Libre", type: "brand", rank: 1, reasoning: "Mercado Libre (LATAM's largest e-commerce platform) has emerged as a major sports sponsor in Argentina and Latin America. Its digital-first audience perfectly matches ESPN/Disney+'s streaming rugby demographic.", source_hint: "mercadolibre.com sports sponsorship; Argentine sports commercial market 2024" },
+      { name: "Quilmes / AB InBev Argentina", type: "brand", rank: 2, reasoning: "Quilmes is the Los Pumas' historic jersey and match-day sponsor — Argentina's most commercially pervasive rugby brand. AB InBev's global rugby activation budget includes Quilmes as the LATAM flagship.", source_hint: "uar.com.ar commercial partners; AB InBev LATAM sports sponsorship" },
+      { name: "Emirates", type: "brand", rank: 3, reasoning: "Emirates is a RWC Worldwide Partner and flies major routes to Buenos Aires. As an international luxury brand it activates rugby partnerships across Latin America's affluent professional demographic.", source_hint: "rugbyworldcup.com Emirates worldwide partnership" }
+    ]
+  },
+  usa: {
+    broadcast_leads: [
+      { name: "CBS Sports / Paramount+", type: "streamer", rank: 1, reasoning: "CBS Sports and Paramount+ hold an exclusive multi-platform World Rugby deal through 2029 — the largest-ever rugby distribution agreement in US history, covering RWC 2027, RWC 2031 (USA host), all USA national team matches, HSBC SVNS, and WXV.", source_hint: "rugbyworldcup.com CBS Sports Paramount+ deal; usa.rugby CBS announcement 2025" },
+      { name: "ESPN / ESPN+", type: "streamer", rank: 2, reasoning: "ESPN signed a multiyear MLR media rights deal in February 2025 (all games on ESPN+, select matches ESPN2); MLR saw 258% streaming viewership growth in 2025. ESPN is the most important domestic league broadcaster for US rugby.", source_hint: "espnpressroom.com ESPN MLR multiyear deal February 2025" },
+      { name: "Peacock / NBC Sports", type: "streamer", rank: 3, reasoning: "NBC/Peacock held RWC 2023 rights generating 11.1 million viewing hours — a 136% increase over RWC 2015. While Paramount+ now holds RWC rights, Peacock's existing rugby audience remains an important US market consideration.", source_hint: "nbcsports.com RWC 2023 Peacock press release" }
+    ],
+    marketing_leads: [
+      { name: "Mastercard", type: "brand", rank: 1, reasoning: "Mastercard is a RWC Worldwide Partner headquartered in Purchase, New York; USA is Mastercard's single largest domestic market. As host-nation commercial partner for RWC 2031, Mastercard's USA activation will be the largest rugby sponsorship campaign in North American history.", source_hint: "rugbyworldcup.com Mastercard partnership; Mastercard US HQ" },
+      { name: "Emirates", type: "brand", rank: 2, reasoning: "Emirates is a RWC Worldwide Partner through 2027 and flies major US routes (JFK, LAX, SFO, Dallas, Houston, Washington). Its RWC 2027 and 2031 host-nation activations in USA and Australia are expected to be among its largest global campaigns.", source_hint: "rugbyworldcup.com Emirates worldwide partner 2027 extension" },
+      { name: "HSBC USA", type: "brand", rank: 3, reasoning: "HSBC is the HSBC SVNS title sponsor globally; the CBS/Paramount+ deal includes HSBC SVNS coverage, making HSBC and CBS Sports natural co-branded partners as rugby grows in North America ahead of RWC 2031.", source_hint: "world.rugby HSBC SVNS title sponsor; CBS Paramount+ World Rugby deal" }
+    ]
+  },
+  italy: {
+    broadcast_leads: [
+      { name: "RAI (RAI 2 / RAI Sport)", type: "broadcaster", rank: 1, reasoning: "RAI holds Italian FTA rights for Six Nations and RWC; for RWC 2023 RAI aired 19 matches FTA including all Azzurri games. RAI's universal reach into 40M+ Italian TV households makes it the primary Italian broadcast partner for any rights deal.", source_hint: "sportspro.com RAI RWC Italy rights; svgeurope.org RWC 2023 European rights" },
+      { name: "Sky Sport Italy", type: "broadcaster", rank: 2, reasoning: "Sky Sport Italy holds pay-TV rights for RWC 2023 covering all 48 matches (19 exclusively); with 4.5M+ subscribers it is the destination for committed Italian rugby fans seeking extended tournament coverage.", source_hint: "sportspro.com RAI Sky Italy RWC rights split" },
+      { name: "DAZN Italy", type: "streamer", rank: 3, reasoning: "DAZN Italy is one of DAZN's strongest European markets with 2M+ Italian subscribers. A competitive bidder for Nations Championship Italian streaming rights from 2026.", source_hint: "sportspro.com DAZN Italy market; Nations Championship rights landscape" }
+    ],
+    marketing_leads: [
+      { name: "Guinness (Diageo Italy)", type: "brand", rank: 1, reasoning: "Guinness is Six Nations title sponsor and activates across Italian rugby events. Italy's commercial packages have grown significantly following improved performances (England victory 2023, Wales victory 2022).", source_hint: "sixnationsrugby.com Guinness sponsorship; Diageo Italy market" },
+      { name: "FIAT / Stellantis", type: "brand", rank: 2, reasoning: "FIAT (Stellantis) is a long-term Italian national rugby sponsor; as Italy's most commercially recognised automotive brand with global presence, FIAT's Azzurri sponsorship aligns with Land Rover's global rugby model.", source_hint: "federugby.it FCA/FIAT partnership; Italian sports commercial landscape" },
+      { name: "Intesa Sanpaolo", type: "brand", rank: 3, reasoning: "Intesa Sanpaolo is among the FIR (Italian Rugby Federation) primary domestic sponsors. Their Azzurri partnership activations target Italy's professional and business banking demographic — rugby's core Italian commercial audience.", source_hint: "federugby.it commercial partners; Italian sports sponsorship tracker" }
+    ]
+  },
+  wales: {
+    broadcast_leads: [
+      { name: "ITV Wales / ITVX", type: "broadcaster", rank: 1, reasoning: "ITV broadcast all RWC 2023 Wales matches FTA including the quarter-final. ITV's £90M Nations Championship deal through 2029 makes it the primary commercial FTA broadcaster for Welsh rugby content globally.", source_hint: "radiotimes.com Wales Argentina quarter-final ITV; broadbandtvnews.com ITV Nations Championship" },
+      { name: "BBC Wales / BBC iPlayer", type: "broadcaster", rank: 2, reasoning: "BBC Wales provides dedicated Welsh rugby radio commentary (BBC Radio Wales, BBC Radio Cymru) for all RWC and Six Nations matches; BBC iPlayer provides digital catch-up. Core public service broadcaster for Welsh rugby.", source_hint: "bbc.com/sport RWC 2023 BBC Cymru Wales coverage guide" },
+      { name: "S4C", type: "broadcaster", rank: 3, reasoning: "S4C (Welsh-language public broadcaster) provides Welsh-language commentary for key Wales rugby matches. Its core 500,000+ Welsh speaker audience is highly commercially valuable for brands targeting Welsh cultural identity.", source_hint: "bbc.com/sport RWC 2023 BBC Cymru Wales; s4c.cymru sports programming" }
+    ],
+    marketing_leads: [
+      { name: "Principality Building Society", type: "brand", rank: 1, reasoning: "Principality holds the naming rights to Principality Stadium (74,500 capacity) in a long-term deal — the most commercially prominent stadium naming rights deal in Welsh sport. Primary domestic brand associated with Welsh rugby.", source_hint: "wru.wales Principality Stadium; principality.co.uk rugby sponsorship" },
+      { name: "Guinness (Diageo)", type: "brand", rank: 2, reasoning: "Guinness Six Nations title sponsorship includes significant Welsh activation. Murrayfield and Principality matchdays are Guinness's highest-value activation moments in Welsh media, reaching 70%+ of Welsh viewers.", source_hint: "sixnationsrugby.com Guinness; Welsh rugby broadcast audience share data" },
+      { name: "Under Armour", type: "brand", rank: 3, reasoning: "Under Armour holds the Wales Rugby jersey kit deal. The Wales kit is one of the best-selling national rugby jerseys globally due to its iconic red design and passionate Welsh diaspora in the UK and Americas.", source_hint: "wru.wales commercial partners; Under Armour Wales kit deal" }
+    ]
+  },
+  scotland: {
+    broadcast_leads: [
+      { name: "ITV / STV", type: "broadcaster", rank: 1, reasoning: "ITV's £90M Nations Championship deal covers UK and Ireland including Scotland (broadcast via STV, ITV's Scottish affiliate). STV will provide Scottish-specific presentation for Nations Championship and Six Nations.", source_hint: "itv.com/presscentre Nations Championship ITV deal January 2026" },
+      { name: "BBC Scotland / BBC iPlayer", type: "broadcaster", rank: 2, reasoning: "BBC Scotland provides comprehensive radio (BBC Radio Scotland) and digital coverage for all Scotland internationals. BBC's exclusive RWC 2023 audio rights were distributed through BBC Radio Scotland for Scottish audiences.", source_hint: "bbc.com/sport RWC 2023 audio rights; BBC Scotland sports programming" },
+      { name: "TNT Sports / Sky Sports", type: "broadcaster", rank: 3, reasoning: "TNT Sports and Sky Sports provide pay-TV coverage of Scottish rugby including European Champions Cup (Glasgow Warriors, Edinburgh Rugby). Combined pay-TV sports reach of 2M+ Scottish households.", source_hint: "sportspro.com UK pay-TV rugby rights" }
+    ],
+    marketing_leads: [
+      { name: "Guinness (Diageo)", type: "brand", rank: 1, reasoning: "Guinness Six Nations title sponsorship includes significant Scottish activation. Murrayfield Six Nations matchdays are the single largest hospitality and brand activation events in Scottish rugby annually with 67,000 sell-out crowds.", source_hint: "sixnationsrugby.com Guinness; Scottish rugby commercial reports" },
+      { name: "BT / EE (BT Group)", type: "brand", rank: 2, reasoning: "BT (now EE post-rebrand) is a long-term Scottish Rugby Union sponsor; as Scotland's dominant fixed-line telecoms provider with 40%+ household market share, BT/EE's rugby activation targets the broadband-and-mobile demographic.", source_hint: "scottishrugby.org commercial partners; BT EE Scotland sponsorship" },
+      { name: "Vodafone UK", type: "brand", rank: 3, reasoning: "Vodafone is a long-term Scottish Rugby and British & Irish Lions sponsor. Its UK-wide rugby portfolio includes Scotland, Ireland, and Lions partnerships, making it one of rugby's most valuable multi-territory UK commercial partners.", source_hint: "scottishrugby.org; vodafone.co.uk rugby sponsorship portfolio" }
+    ]
+  },
+  canada: {
+    broadcast_leads: [
+      { name: "TSN (Bell Media)", type: "broadcaster", rank: 1, reasoning: "TSN held RWC 2023 broadcast rights in Canada with streaming via TSN Direct. As Canada's largest sports network with 6M+ subscribers, TSN is the primary broadcast partner for any World Rugby commercial package targeting English-speaking Canada.", source_hint: "sportingnews.com Canada RWC 2023 watch guide" },
+      { name: "RDS (Bell Media)", type: "broadcaster", rank: 2, reasoning: "RDS held French-language RWC 2023 rights in Canada. With 8M+ French-speaking Canadians (primarily Quebec), RDS provides a linguistically distinct commercial window for French-language rugby rights packages.", source_hint: "sportingnews.com Canada RWC 2023; RDS programming" },
+      { name: "DAZN Canada", type: "streamer", rank: 3, reasoning: "DAZN Canada is one of DAZN's strongest markets (launched 2017, 2M+ subscribers). A competitive bidder for Nations Championship streaming rights, particularly given its existing sports audience overlapping with rugby's demographic.", source_hint: "sportspro.com DAZN Canada market; DAZN global rights strategy" }
+    ],
+    marketing_leads: [
+      { name: "HSBC Canada", type: "brand", rank: 1, reasoning: "HSBC is title sponsor of HSBC SVNS including the Canada Sevens in Vancouver; the annual Canada Sevens attracts 30,000+ fans per day across two days at BC Place, making HSBC Canada the most commercially active rugby brand in Canada.", source_hint: "world.rugby HSBC SVNS; canadasevens.com sponsor listings" },
+      { name: "RBC (Royal Bank of Canada)", type: "brand", rank: 2, reasoning: "RBC is Canada's largest bank and a natural corporate rugby sponsor given its sports marketing portfolio (RBC Canadian Open golf, NHL). RBC is a likely primary partner if Canada re-qualifies for RWC 2027.", source_hint: "rugby canada sponsorship history; RBC sports marketing portfolio" },
+      { name: "Molson Coors Canada", type: "brand", rank: 3, reasoning: "Molson Coors is Canada's dominant brewery with Molson Canadian and Coors Light. Beer category sponsors are historically the most active rugby match-day brands in Canada, and Molson's sports portfolio (NHL, CFL) would extend naturally to rugby.", source_hint: "molsoncoors.com Canada sports marketing; Canadian sports sponsorship index" }
+    ]
+  },
+  fiji: {
+    broadcast_leads: [
+      { name: "Fiji Television (Fiji One)", type: "broadcaster", rank: 1, reasoning: "Fiji Television secured exclusive RWC 2023 broadcast rights across Fiji and the Pacific region; all 48 matches broadcast live and FTA covering 9 Pacific nations. The cornerstone domestic broadcast partner for any Fijian rugby rights package.", source_hint: "fijionenews.com.fj Fiji TV RWC 2023 rights; World Rugby Asia Oceania broadcast" },
+      { name: "Sky New Zealand (Pacific feed)", type: "broadcaster", rank: 2, reasoning: "Sky NZ's coverage of Super Rugby Pacific (where Fijian Drua competes from 2022) reaches the Fijian diaspora across NZ/Australia and is the most commercially valuable distribution for Flying Fijians content outside Fiji.", source_hint: "skysport.co.nz Super Rugby Fijian Drua; NZ Pacific rugby coverage" },
+      { name: "Stan Sport / Nine (Australia)", type: "streamer", rank: 3, reasoning: "Stan Sport carries all Super Rugby Pacific including Fijian Drua. Australia's 330,000+ Fijian-born residents make Stan Sport an important distribution channel for Fijian rugby content, particularly relevant as RWC 2027 Australia approaches.", source_hint: "stan.com.au Super Rugby Pacific rights; Australian Pacific diaspora data" }
+    ],
+    marketing_leads: [
+      { name: "HSBC", type: "brand", rank: 1, reasoning: "HSBC is title sponsor of HSBC SVNS where Fiji are perennial champions and Olympic gold medallists. Fiji Sevens' global brand recognition makes HSBC's Fiji activation one of its highest-visibility rugby investments relative to market size.", source_hint: "world.rugby HSBC SVNS; Fiji Sevens championship history" },
+      { name: "Digicel Pacific", type: "brand", rank: 2, reasoning: "Digicel is the dominant telecom provider across Pacific island markets (Fiji, Samoa, Tonga, PNG) and a long-term rugby sponsor in the Pacific. Digicel's rugby sponsorship is its primary brand-building vehicle in Pacific communities where rugby is the dominant sport.", source_hint: "fijirugby.com.fj commercial partners; Digicel Pacific sports sponsorship" },
+      { name: "Fiji Airways", type: "brand", rank: 3, reasoning: "Fiji Airways is a principal sponsor of the Flying Fijians and Fiji Sevens teams. The partnership drives inbound sports tourism and brand recognition among the global rugby community attending HSBC SVNS events.", source_hint: "fijirugby.com.fj; fijiairways.com sponsorship" }
+    ]
+  },
+  samoa: {
+    broadcast_leads: [
+      { name: "TV Samoa", type: "broadcaster", rank: 1, reasoning: "TV Samoa holds domestic broadcast rights for Manu Samoa matches. As the primary free-to-air broadcaster in Samoa with near-universal household reach, TV Samoa is the key distribution partner for any RWC content reaching the domestic Samoan audience.", source_hint: "sportscriber.com RWC 2023 worldwide broadcast; Pacific rugby media landscape" },
+      { name: "Sky New Zealand", type: "broadcaster", rank: 2, reasoning: "Sky NZ's 300,000+ Samoan-heritage viewer demographic in NZ makes it the commercially most valuable broadcaster for Manu Samoa content. Sky broadcasts Moana Pasifika (Super Rugby Pacific) which features multiple Samoan players.", source_hint: "skysport.co.nz Moana Pasifika; Statistics NZ Pacific population data" }
+    ],
+    marketing_leads: [
+      { name: "Digicel Samoa", type: "brand", rank: 1, reasoning: "Digicel is Samoa's dominant mobile network operator and principal Manu Samoa sponsor. Rugby union is Samoa's national sport by cultural identity and Digicel's exclusive Pacific rugby sponsorship is its most commercially effective brand-building tool.", source_hint: "samoarugby.ws commercial partners; Digicel Pacific rugby sponsorship" },
+      { name: "ANZ Samoa (ANZ Pacific)", type: "brand", rank: 2, reasoning: "ANZ Bank Pacific is a rugby commercial partner across Samoa, Fiji, Tonga, and Vanuatu. ANZ's Pacific remittance and retail banking services are heavily used by Samoan communities globally, making rugby union the primary B2C marketing vehicle.", source_hint: "anz.com/pacific; Samoa rugby commercial partners" },
+      { name: "Vailima Beer (Samoa Breweries)", type: "brand", rank: 3, reasoning: "Vailima is the domestic beer sponsor of Manu Samoa and the iconic Samoan rugby beer brand — the most domestically recognised commercial partnership in Samoan sport.", source_hint: "samoarugby.ws; Vailima sponsorship history" }
+    ]
+  },
+  georgia: {
+    broadcast_leads: [
+      { name: "GPB (Georgian Public Broadcasting)", type: "broadcaster", rank: 1, reasoning: "GPB held domestic RWC 2023 broadcast rights in Georgia and is the country's only broadcaster with the reach to deliver rugby to Georgia's 3.7 million population. Rugby is one of Georgia's top 3 sports by national viewership.", source_hint: "sportscriber.com RWC 2023 worldwide broadcast channels; Georgian rugby" },
+      { name: "Rustavi 2 / Imedi TV", type: "broadcaster", rank: 2, reasoning: "Rustavi 2 and Imedi are Georgia's largest commercial TV networks and natural competitive sub-licensing partners for major rugby events (World Cup knockout stages, Lelos internationals).", source_hint: "Georgian media landscape reports; GPB broadcast rights framework" }
+    ],
+    marketing_leads: [
+      { name: "TBC Bank", type: "brand", rank: 1, reasoning: "TBC Bank is Georgia's largest bank and the primary domestic rugby sponsor. TBC's Georgian Rugby Union partnership is the most commercially significant sports sponsorship in the country, targeting Georgia's growing professional middle class.", source_hint: "georgianlelo.ge commercial partners; TBC Group annual report" },
+      { name: "Bank of Georgia (BoG)", type: "brand", rank: 2, reasoning: "Bank of Georgia is TBC's primary domestic competitor and a rival Georgian rugby commercial partner. BoG's London-listed status (LSE) and dual Georgia-UK presence makes it a bridge brand for Georgian rugby's emerging European commercial narrative.", source_hint: "georgianlelo.ge; Bank of Georgia sports sponsorship" },
+      { name: "Georgian Wine Brands (Badagoni / Kindzmarauli)", type: "brand", rank: 3, reasoning: "Georgian wine exports are the country's most globally marketed product. Rugby's international broadcast presence provides a platform for Georgian wine brands to activate in European and Asia-Pacific markets through World Cup appearances.", source_hint: "National Wine Agency of Georgia; Georgian rugby hosting 2026 JWC" }
+    ]
+  },
+  uruguay: {
+    broadcast_leads: [
+      { name: "Canal 10 (Montevideo)", type: "broadcaster", rank: 1, reasoning: "Canal 10 held RWC 2023 broadcast rights in Uruguay and provided FTA coverage. As Uruguay's most commercially important general entertainment network, Canal 10 is the default domestic broadcaster for Los Teros matches.", source_hint: "sportscriber.com RWC 2023 Americas broadcast channels" },
+      { name: "ESPN Latin America (Uruguay)", type: "broadcaster", rank: 2, reasoning: "ESPN Latin America covers Rugby Championship Americas and Superliga Americana de Rugby (SAR) and RWC content in Uruguay via cable/satellite. ESPN's Spanish-language rugby content is the primary pay-TV home for Uruguayan rugby fans.", source_hint: "espn.com.ar rugby; Uruguay rugby broadcast landscape" }
+    ],
+    marketing_leads: [
+      { name: "Antel", type: "brand", rank: 1, reasoning: "Antel is Uruguay's national state-owned telecoms provider and a long-term Los Teros sponsor. As Uruguay's largest single corporate entity, Antel's rugby sponsorship is the dominant domestic commercial partnership.", source_hint: "uru.rugby commercial partners; Antel Uruguay state telecoms" },
+      { name: "BROU (Banco de la República Oriental del Uruguay)", type: "brand", rank: 2, reasoning: "BROU (Uruguay's state bank) is a principal Los Teros sponsor. BROU's nationwide branch network covers the precise educated-professional-rugby-aware demographic that forms the sport's commercial audience in Uruguay.", source_hint: "uru.rugby commercial partners; BROU Uruguay sponsorship" },
+      { name: "Pilsen Uruguay (AB InBev)", type: "brand", rank: 3, reasoning: "Pilsen is Uruguay's most popular domestic beer brand (AB InBev) and the natural beverage category rugby sponsor. AB InBev's global rugby portfolio (Quilmes in Argentina, Castle Lager in South Africa) gives Pilsen's Uruguay activation a coherent LATAM rugby commercial strategy.", source_hint: "uru.rugby; AB InBev LATAM brand portfolio" }
+    ]
+  }
+};
+
+// ═══════════════════════════════════════════════════
+// GRID BUILDER
+// ═══════════════════════════════════════════════════
+const PACKAGES = [
+  { key: 'tv', label: 'TV Broadcast', tag: 'pkg-tv', score_field: 'tv_score' },
+  { key: 'digital', label: 'Digital / Streaming', tag: 'pkg-dig', score_field: 'digital_score' },
+  { key: 'highlights', label: 'Highlights', tag: 'pkg-hi', score_field: 'highlights_score' },
+  { key: 'marketing', label: 'Marketing / Sponsorship', tag: 'pkg-mkt', score_field: 'marketing_score' }
+];
+
+// Demo sold rights — cricket: package_key + territory_id pairs
+const CRICKET_SOLD = new Set([
+  'tv_india', 'digital_india', 'highlights_india', 'marketing_india',
+  'tv_australia', 'digital_australia',
+  'tv_england', 'marketing_england',
+  'tv_southafrica', 'digital_southafrica',
+  'marketing_uae',
+  'tv_pakistan',
+  'highlights_westindies',
+  'digital_usa'
+]);
+
+// Demo sold rights — rugby: same logic
+const RUGBY_SOLD = new Set([
+  'tv_france', 'digital_france', 'highlights_france', 'marketing_france',
+  'tv_england', 'digital_england', 'marketing_england',
+  'tv_new_zealand', 'digital_new_zealand',
+  'tv_south_africa', 'marketing_south_africa',
+  'tv_japan', 'digital_japan', 'marketing_japan',
+  'tv_ireland', 'marketing_ireland',
+  'digital_usa'
+]);
+
+let currentSport = 'cricket';
+
+function buildGrid(sport, territories, leads, soldSet, tableId) {
+  const table = document.getElementById(tableId);
+  let html = '<thead><tr><th class="row-label axis-label">Inventory ↓ &nbsp;/&nbsp; Territories →</th>';
+  territories.forEach(t => {
+    html += `<th class="flag-th" title="${t.name}">${t.flag}<span>${t.name.split(' ')[0]}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  PACKAGES.forEach(pkg => {
+    html += `<tr class="package-row"><td class="pkg-label">${pkg.label}<span class="pkg-tag ${pkg.tag}">${pkg.key.toUpperCase()}</span></td>`;
+    territories.forEach(t => {
+      const score = t[pkg.score_field];
+      const soldKey = `${pkg.key}_${t.id}`;
+      const isSold = soldSet.has(soldKey);
+      const soldClass = isSold ? ' is-sold' : '';
+      html += `<td class="cell heat-${score}${soldClass}" onclick="selectCell('${sport}','${t.id}','${pkg.key}','${pkg.label}')" title="${t.name} — ${pkg.label}: ${score}/5${isSold?' (SOLD)':''}">
+        <div class="cell-score">${score}</div>
+        <div class="cell-sold-badge ${isSold?'sold':'avail'}">${isSold?'✓ Sold':'Avail'}</div>
+      </td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function switchSport(sport) {
+  currentSport = sport;
+  document.querySelectorAll('.sport-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sport-' + sport).style.display = 'block';
+  event.target.classList.add('active');
+  // Reset drawer
+  closeDrawer();
+  const drawer = document.getElementById('drawer');
+  drawer.classList.add('closed');
+  document.getElementById('drawer-content').innerHTML = getEmptyState(sport);
+}
+
+// ═══════════════════════════════════════════════════
+// DRAWER
+// ═══════════════════════════════════════════════════
+let activeCell = null;
+
+function getEmptyState(sport) {
+  const emoji = sport === 'cricket' ? '🏏' : '🏉';
+  const hints = sport === 'cricket'
+    ? 'Try clicking: India (🇮🇳) for the dominant market, UAE (🇦🇪) for the surprise sponsorship leader, or Germany (🇩🇪) for a non-obvious emerging hotspot.'
+    : 'Try clicking: France (🇫🇷) for the host market, Japan (🇯🇵) for the surprise giant, or USA (🇺🇸) for the fastest growing territory.';
+  return `<div class="drawer-empty">
+    <div class="drawer-empty-icon">${emoji}</div>
+    <div class="drawer-empty-title">Select a cell to explore</div>
+    <div class="drawer-empty-sub">Click any cell in the heatmap to see AI-researched hotspot intelligence and ranked buyer leads.</div>
+    <div class="drawer-empty-hint">
+      <strong>How to read the grid:</strong><br>
+      Each row is a rights package (Inventory). Each column is a territory.<br>
+      Darker teal = higher commercial interest. Green badge = sold. White badge = available.<br><br>
+      <strong>Try clicking:</strong> ${hints}
+    </div>
+  </div>`;
+}
+
+function selectCell(sport, territoryId, packageKey, packageLabel) {
+  if (activeCell) activeCell.classList.remove('active');
+
+  // Find the right territory and leads dataset
+  const territories = sport === 'cricket' ? TERRITORIES : RUGBY_TERRITORIES;
+  const allLeads = sport === 'cricket' ? LEADS : RUGBY_LEADS;
+  const soldSet = sport === 'cricket' ? CRICKET_SOLD : RUGBY_SOLD;
+
+  const prefix = sport === 'cricket' ? '#cricket-grid-table' : '#rugby-grid-table';
+  const cells = document.querySelectorAll(`${prefix} .cell`);
+  const idx = territories.findIndex(t => t.id === territoryId);
+  const pkgIdx = PACKAGES.findIndex(p => p.key === packageKey);
+  const cellIndex = pkgIdx * territories.length + idx;
+  activeCell = cells[cellIndex];
+  if (activeCell) activeCell.classList.add('active');
+
+  const territory = territories.find(t => t.id === territoryId);
+  const score = territory[PACKAGES.find(p => p.key === packageKey).score_field];
+  const leads = allLeads[territoryId] || {};
+  const soldKey = `${packageKey}_${territoryId}`;
+  const isSold = soldSet.has(soldKey);
+
+  const drawer = document.getElementById('drawer');
+  drawer.classList.remove('closed');
+
+  const heatClass = `heat-${score}`;
+  const bLeads = leads.broadcast_leads || [];
+  const mLeads = leads.marketing_leads || [];
+  const scoreLabels = ['','Low','Moderate','Good','Strong','Dominant'];
+  const sportLabel = sport === 'cricket' ? '🏏 Cricket World Cup' : '🏉 Rugby World Cup';
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="drawer-hero">
+      <div class="drawer-hero-top">
+        <div class="drawer-flag">${territory.flag}</div>
+        <div>
+          <div class="drawer-territory">${territory.name}</div>
+          <div class="drawer-package">${sportLabel} · ${packageLabel} Rights</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+        <div class="score-badge ${heatClass}">
+          <span style="font-size:22px;font-weight:900;line-height:1;">${score}</span><span style="font-size:12px;font-weight:500;opacity:0.85;">/5 — ${scoreLabels[score]}</span>
+        </div>
+        <div style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:12px;background:${isSold?'#D4EFDF':'#F0F7F6'};color:${isSold?'#1A6640':'var(--teal)'};">
+          ${isSold ? '✓ Rights Sold (Demo)' : '● Available'}
+        </div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="section-title">Hotspot Intelligence</div>
+      <ul class="fact-list">
+        ${territory.key_facts.map(f=>`<li>${f}</li>`).join('')}
+      </ul>
+      ${territory.surprise_factor ? `<div class="surprise-box">💡 ${territory.surprise_factor}</div>` : ''}
+    </div>
+
+    <div class="drawer-section" id="leads-section" style="padding-left:0;padding-right:0;padding-top:0;">
+      <div style="padding: 14px 24px 0; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--teal); margin-bottom:8px;">Buyer Leads</div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('broadcast','${territoryId}','${packageKey}')">📺 Broadcast Leads</div>
+        <div class="tab" onclick="switchTab('marketing','${territoryId}','${packageKey}')">🏷️ Sponsor Leads</div>
+      </div>
+      <div id="tab-broadcast" class="tab-panel active" style="padding:16px 24px 0;">
+        ${renderLeads(bLeads, 'broadcast')}
+      </div>
+      <div id="tab-marketing" class="tab-panel" style="padding:16px 24px 0;">
+        ${renderLeads(mLeads, 'marketing')}
+      </div>
+    </div>
+  `;
+}
+
+function renderLeads(leads, type) {
+  if (!leads || leads.length === 0) {
+    return `<div class="no-leads">No specific leads researched for this package type.</div>`;
+  }
+  return leads.map(l => `
+    <div class="lead-card">
+      <div class="lead-top">
+        <div class="lead-name">#${l.rank} ${l.name}</div>
+        <div class="lead-rank">Rank ${l.rank}</div>
+      </div>
+      <div><span class="lead-type lt-${l.type}">${l.type}</span></div>
+      <div class="lead-reason">${l.reasoning}</div>
+      <div class="lead-source">📎 ${l.source_hint}</div>
+    </div>
+  `).join('');
+}
+
+function switchTab(tab, territoryId, packageKey) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.add('closed');
+  if (activeCell) { activeCell.classList.remove('active'); activeCell = null; }
+}
+
+// Init
+buildGrid('cricket', TERRITORIES, LEADS, CRICKET_SOLD, 'cricket-grid-table');
+buildGrid('rugby', RUGBY_TERRITORIES, RUGBY_LEADS, RUGBY_SOLD, 'rugby-grid-table');
+</script>
+</body>
+</html>
